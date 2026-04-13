@@ -2,23 +2,28 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <!-- Favicon alterado para o novo ícone do PWA -->
-    <link rel="icon" type="image/png" href="/icon-192.png" />
-    <!-- Viewport ajustado para impedir zoom em celulares (App-like UX) -->
+
+    <!-- Viewport (UX de app) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
     <title>TitoVest</title>
 
-    <!-- ======== CONFIGURAÇÃO PWA ======== -->
-    <link rel="manifest" href="/manifest.json" />
+    <!-- ======== FAVICON / ÍCONES ======== -->
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="TitoVest" />
+
+    <!-- ======== PWA ======== -->
+    <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#0a0a0a" />
-    
-    <!-- Suporte para iOS (Apple) -->
-    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
+
+    <!-- iOS comportamento app -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <!-- ================================== -->
+    <!-- ===================== -->
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
