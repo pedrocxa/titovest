@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ======== UX DE APP NATIVO ======== */
+body {
+  /* Remove aquele fundo azul irritante quando se clica em algo no telemóvel */
+  -webkit-tap-highlight-color: transparent; 
+  /* Evita que o utilizador selecione o texto da aplicação sem querer */
+  user-select: none; 
+}
+
+/* Garante que os inputs continuam a poder ser selecionados para edição */
+input, textarea, select {
+  user-select: auto;
+}
+/* ================================== */
