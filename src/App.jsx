@@ -1,0 +1,1449 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Home, 
+  Wallet, 
+  User, 
+  BarChart2, 
+  Menu,
+  Bell,
+  MessageSquare,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpRight,
+  ArrowDownRight,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Target,
+  Zap,
+  Wifi,
+  MonitorPlay,
+  ShieldCheck,
+  DollarSign,
+  Euro,
+  Coins,
+  Plus,
+  X,
+  CheckCircle2,
+  Trash2,
+  Rocket,
+  CreditCard,
+  LineChart as LineChartIcon,
+  Activity,
+  Briefcase,
+  Landmark,
+  Moon,
+  Sun
+} from 'lucide-react';
+
+// --- Hook para LocalStorage ---
+function useLocalStorage(key, initialValue) {
+  const [storedValue, setStoredValue] = useState(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      console.warn("Error reading localStorage", error);
+      return initialValue;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(storedValue));
+    } catch (error) {
+      console.warn("Error setting localStorage", error);
+    }
+  }, [key, storedValue]);
+
+  return [storedValue, setStoredValue];
+}
+
+// --- Dados Iniciais Zerados ---
+const initialTransactions = [];
+const initialFixedCosts = [];
+const initialGoals = [];
+const initialInvestmentsBr = [];
+const initialCustomInvestments = [];
+
+const currencies = [
+  { id: 1, name: 'Dólar (USD)', value: 5.45, change: '+0.8%', isUp: true, icon: DollarSign, internalKey: 'usd' },
+  { id: 2, name: 'Euro (EUR)', value: 5.92, change: '-0.2%', isUp: false, icon: Euro, internalKey: 'eur' },
+  { id: 3, name: 'Bitcoin (BTC)', value: 345120.00, change: '+2.4%', isUp: true, icon: Coins, internalKey: 'btc' },
+];
+
+// Utilitário para renderizar ícones dinamicamente
+const IconMap = { Zap, ShieldCheck, Wifi, MonitorPlay, CreditCard, Receipt: CreditCard };
+const getIcon = (name) => IconMap[name] || CreditCard;
+
+// --- Componente: Contador Animado ---
+const AnimatedNumber = ({ value, prefix = "", suffix = "", decimals = 0, isPrivate = false, duration = 1500 }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    let animationFrameId;
+    let startTimestamp = null;
+    const startValue = displayValue;
+    const targetValue = Number(value) || 0;
+
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 4);
+      const current = startValue + (targetValue - startValue) * ease;
+      setDisplayValue(current);
+      if (progress < 1) {
+        animationFrameId = window.requestAnimationFrame(step);
+      } else {
+        setDisplayValue(targetValue);
+      }
+    };
+    animationFrameId = window.requestAnimationFrame(step);
+    return () => window.cancelAnimationFrame(animationFrameId);
+  }, [value, duration]);
+
+  const formatted = displayValue.toLocaleString('pt-BR', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
+
+  if (isPrivate) return <span>{prefix}••••{suffix}</span>;
+  return <span>{prefix}{formatted}{suffix}</span>;
+};
+
+// --- Estilos Globais Premium (Incluindo Dark Mode Overrides) ---
+const customStyles = `
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 300;
+    background-color: #f8f9fa;
+    color: #6b7280;
+    margin: 0;
+    overflow-x: hidden;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0px); }
+  }
+
+  @keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+    opacity: 0;
+  }
+
+  .animate-slide-up-fade {
+    animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+  }
+  
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+
+  .smart-badge {
+    animation: pulseGlow 2.5s infinite;
+  }
+  
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+
+  .clean-card {
+    background: #ffffff;
+    border-radius: 1.25rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    transition: all 0.3s ease;
+  }
+
+  .clean-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+  
+  .progress-ring__circle {
+    transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+  }
+
+  /* ========================================================= */
+  /* THEME DARK MODE (Overrides inteligentes)                    */
+  /* ========================================================= */
+  
+  .theme-dark {
+    background-color: #0a0a0a !important; /* Fundo base (Preto Neutro Puro) */
+    color: #e5e5e5 !important; /* Texto base */
+  }
+
+  /* Fundos de Cards e Elementos Brancos */
+  .theme-dark .bg-white,
+  .theme-dark .clean-card {
+    background-color: #171717 !important; /* Cinza super escuro (Cards) */
+    border-color: #262626 !important; 
+  }
+  .theme-dark .bg-\\[\\#f8f9fa\\] { background-color: #0a0a0a !important; }
+  
+  /* Fundos Cinzas */
+  .theme-dark .bg-gray-50 { background-color: #262626 !important; }
+  .theme-dark .bg-gray-100 { background-color: #404040 !important; }
+  .theme-dark .bg-gray-800 { background-color: #000000 !important; color: #f5f5f5 !important; }
+  .theme-dark .bg-gray-900 { background-color: #000000 !important; }
+
+  /* Textos de Contraste */
+  .theme-dark .text-gray-900,
+  .theme-dark .text-gray-800,
+  .theme-dark .text-gray-700 { color: #f5f5f5 !important; }
+  .theme-dark .text-gray-600 { color: #d4d4d4 !important; }
+  .theme-dark .text-gray-500,
+  .theme-dark .text-gray-400 { color: #a3a3a3 !important; }
+  .theme-dark .text-gray-300 { color: #737373 !important; }
+
+  /* Bordas */
+  .theme-dark .border-gray-50,
+  .theme-dark .border-gray-100,
+  .theme-dark .border-gray-200,
+  .theme-dark .border-white { border-color: #262626 !important; }
+
+  /* Inputs e Selects */
+  .theme-dark input,
+  .theme-dark select {
+    background-color: #0a0a0a !important;
+    color: #f5f5f5 !important;
+    border-color: #262626 !important;
+  }
+  .theme-dark input::placeholder { color: #737373 !important; }
+
+  /* Exceções: Preservar Vermelho, Verde e Azul */
+  .theme-dark .text-red-500 { color: #ef4444 !important; }
+  .theme-dark .text-red-600 { color: #dc2626 !important; }
+  .theme-dark .bg-red-500 { background-color: #ef4444 !important; }
+  .theme-dark .bg-red-50 { background-color: rgba(239, 68, 68, 0.15) !important; }
+  .theme-dark .border-red-100 { border-color: rgba(239, 68, 68, 0.3) !important; }
+  .theme-dark .border-red-300 { border-color: rgba(239, 68, 68, 0.5) !important; }
+
+  .theme-dark .text-emerald-400 { color: #34d399 !important; }
+  .theme-dark .text-emerald-500 { color: #10b981 !important; }
+  .theme-dark .text-emerald-600 { color: #34d399 !important; } 
+  .theme-dark .bg-emerald-500 { background-color: #10b981 !important; }
+  .theme-dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.15) !important; }
+  .theme-dark .border-emerald-100 { border-color: rgba(16, 185, 129, 0.3) !important; }
+  .theme-dark .border-emerald-300 { border-color: rgba(16, 185, 129, 0.5) !important; }
+  .theme-dark .border-l-emerald-500 { border-left-color: #10b981 !important; }
+
+  .theme-dark .text-blue-500 { color: #3b82f6 !important; }
+
+  /* Elementos Transparentes / Efeitos Glass */
+  .theme-dark .shadow-sm,
+  .theme-dark .shadow-md,
+  .theme-dark .shadow-lg,
+  .theme-dark .shadow-xl,
+  .theme-dark .shadow-2xl {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
+  }
+  .theme-dark .bg-white\\/90 { background-color: rgba(23, 23, 23, 0.85) !important; backdrop-filter: blur(16px); }
+  .theme-dark .bg-white\\/70 { background-color: rgba(23, 23, 23, 0.7) !important; }
+  .theme-dark .bg-white\\/50 { background-color: rgba(23, 23, 23, 0.5) !important; }
+  .theme-dark .bg-gray-50\\/50, 
+  .theme-dark .bg-gray-50\\/30, 
+  .theme-dark .bg-gray-50\\/20, 
+  .theme-dark .bg-gray-50\\/40 {
+    background-color: rgba(10, 10, 10, 0.4) !important;
+  }
+
+  /* SVGs (Círculos e Gráficos) */
+  .theme-dark circle[stroke="#e5e7eb"],
+  .theme-dark circle[stroke="#f3f4f6"] {
+    stroke: #262626 !important;
+  }
+`;
+
+export default function App() {
+  // --- Estados do Sistema e UI ---
+  const [userName, setUserName] = useLocalStorage('titovest_user', '');
+  const [welcomeName, setWelcomeName] = useState('');
+  
+  const [activeTab, setActiveTab] = useState('home');
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useLocalStorage('titovest_theme', false); 
+  const [goalIndex, setGoalIndex] = useState(0);
+  const [chartPeriod, setChartPeriod] = useState('6M');
+  
+  // Modais
+  const [txModal, setTxModal] = useState(null);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [fixedCostModal, setFixedCostModal] = useState(false);
+  const [invModal, setInvModal] = useState(false);
+  const [goalModal, setGoalModal] = useState(false);
+  const [customInvModal, setCustomInvModal] = useState(false);
+  const [salaryConfirmModal, setSalaryConfirmModal] = useState(null); // Estado para o modal do salário
+
+  // --- Estados Persistentes (Inteligência Financeira) ---
+  const [salary, setSalary] = useLocalStorage('titovest_salary', 0);
+  const [salaryInput, setSalaryInput] = useState(''); 
+  const [transactions, setTransactions] = useLocalStorage('titovest_transactions', initialTransactions);
+  const [fixedCosts, setFixedCosts] = useLocalStorage('titovest_fixed_costs', initialFixedCosts);
+  const [goals, setGoals] = useLocalStorage('titovest_goals', initialGoals);
+  const [investmentsBr, setInvestmentsBr] = useLocalStorage('titovest_inv_br', initialInvestmentsBr);
+  const [investmentsExt, setInvestmentsExt] = useLocalStorage('titovest_inv_ext', { usd: '', eur: '', btc: '' });
+  const [customInvestments, setCustomInvestments] = useLocalStorage('titovest_custom_inv', initialCustomInvestments);
+
+  // Inputs temporários
+  const [newTx, setNewTx] = useState({ amount: '', desc: '' });
+  const [newFixedCost, setNewFixedCost] = useState({ name: '', amount: '', due: '' });
+  const [newInv, setNewInv] = useState({ type: 'CDB', bank: '', amount: '' });
+  const [newGoal, setNewGoal] = useState({ name: '', target: '', current: '' });
+  const [newCustomInv, setNewCustomInv] = useState({ name: '', amount: '' });
+
+  // Sincroniza o input local de salário sempre que ele muda na memória
+  useEffect(() => {
+    setSalaryInput(salary || '');
+  }, [salary]);
+
+  // --- Lógica de Negócio e Cálculos Automáticos Integrados ---
+  const totalIn = transactions.filter(t => t.type === 'in').reduce((acc, t) => acc + t.amount, 0);
+  const totalOut = transactions.filter(t => t.type === 'out').reduce((acc, t) => acc + t.amount, 0);
+  const availableBalance = totalIn - totalOut; // Saldo puramente transacional
+  
+  const committedTotal = fixedCosts.reduce((acc, c) => acc + c.amount, 0);
+  const availableAfterFixed = (Number(salary) || 0) - committedTotal;
+  
+  const avgVariableCosts = totalOut > 0 ? totalOut : 0; 
+  const finalForecast = (Number(salary) || 0) - committedTotal - avgVariableCosts;
+
+  // Total de Investimentos Externos (Convertendo a string de input para number)
+  const usdTotal = (Number(investmentsExt.usd) || 0) * 5.00;
+  const eurTotal = (Number(investmentsExt.eur) || 0) * 5.40;
+  const btcTotal = (Number(investmentsExt.btc) || 0) * 345120.00; 
+  const totalCustomInv = customInvestments.reduce((acc, inv) => acc + inv.amount, 0);
+  const totalInvestmentsExtConverted = usdTotal + eurTotal + btcTotal + totalCustomInv;
+
+  const totalInvestmentsBr = investmentsBr.reduce((acc, inv) => acc + inv.amount, 0);
+  const totalInvested = totalInvestmentsBr + totalInvestmentsExtConverted;
+
+  // SALDO ATUAL INTEGRADÍSSIMO: (Entradas - Saídas) + Renda Fixa + Externos
+  const totalBalance = availableBalance + totalInvested;
+
+  // Saúde Financeira
+  const savingsRate = (Number(salary) > 0) ? (((Number(salary) || 0) - committedTotal - avgVariableCosts) / Number(salary)) * 100 : 0;
+  let healthScore = 0;
+  if ((Number(salary) || 0) === 0 && totalBalance === 0) healthScore = 0;
+  else if (savingsRate >= 20) healthScore = 95;
+  else if (savingsRate >= 10) healthScore = 75;
+  else if (savingsRate > 0) healthScore = 60;
+  else healthScore = 30;
+
+  // --- Ações ---
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleAddTx = () => {
+    if (!newTx.amount || !newTx.desc) return;
+    const nTx = {
+      id: Date.now(),
+      name: newTx.desc,
+      status: 'Concluído',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      amount: parseFloat(newTx.amount),
+      type: txModal
+    };
+    setTransactions([nTx, ...transactions]);
+    setTxModal(null);
+    setNewTx({ amount: '', desc: '' });
+    showToast('Transação salva com sucesso!');
+  };
+
+  const handleAddFixedCost = () => {
+    if (!newFixedCost.amount || !newFixedCost.name) return;
+    const nFc = {
+      id: Date.now(),
+      name: newFixedCost.name,
+      due: newFixedCost.due || '01',
+      amount: parseFloat(newFixedCost.amount),
+      iconName: 'Receipt'
+    };
+    setFixedCosts([...fixedCosts, nFc]);
+    setFixedCostModal(false);
+    setNewFixedCost({ name: '', amount: '', due: '' });
+    showToast('Custo fixo adicionado!');
+  };
+
+  const removeFixedCost = (id) => {
+    setFixedCosts(fixedCosts.filter(c => c.id !== id));
+    showToast('Custo removido.');
+  };
+
+  const handleAddInvestment = () => {
+    if (!newInv.amount || !newInv.bank) return;
+    let rate = 0;
+    if (newInv.type === 'CDB') rate = 10.5;
+    else if (newInv.type === 'Tesouro Selic') rate = 10.0;
+    else if (newInv.type === 'Poupança') rate = 6.0;
+
+    const nInv = {
+      id: Date.now(),
+      type: newInv.type,
+      bank: newInv.bank,
+      amount: parseFloat(newInv.amount),
+      rate: rate
+    };
+    setInvestmentsBr([...investmentsBr, nInv]);
+    setInvModal(false);
+    setNewInv({ type: 'CDB', bank: '', amount: '' });
+    showToast('Investimento registrado!');
+  };
+
+  const handleAddGoal = () => {
+    if (!newGoal.name || !newGoal.target) return;
+    const nGoal = {
+      id: Date.now(),
+      name: newGoal.name,
+      target: parseFloat(newGoal.target),
+      current: parseFloat(newGoal.current) || 0
+    };
+    setGoals([...goals, nGoal]);
+    setGoalModal(false);
+    setNewGoal({ name: '', target: '', current: '' });
+    showToast('Meta criada com sucesso!');
+  };
+
+  const nextGoal = () => { if(goals.length > 0) setGoalIndex((prev) => (prev + 1) % goals.length); };
+  const prevGoal = () => { if(goals.length > 0) setGoalIndex((prev) => (prev - 1 + goals.length) % goals.length); };
+
+  // --- TELA DE BOAS-VINDAS (ONBOARDING PREMIUM) ---
+  if (!userName) {
+    return (
+      <div className={`flex h-screen w-full items-center justify-center overflow-hidden relative px-4 ${isDarkMode ? 'theme-dark bg-[#0a0a0a]' : 'bg-gradient-to-br from-gray-50 to-white'}`}>
+        <style>{customStyles}</style>
+
+        {/* Botão de Tema na Tela Inicial */}
+        <div className="absolute top-6 right-6 z-50">
+           <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-3 text-gray-400 hover:text-gray-800 bg-white/50 border border-gray-100 rounded-full transition-colors relative backdrop-blur-md shadow-sm">
+            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+        </div>
+        
+        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-red-500/[0.04] rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-red-500/[0.05] rounded-full blur-[150px] pointer-events-none"></div>
+
+        <div className="z-10 p-8 md:p-12 flex flex-col items-center text-center max-w-[420px] w-full bg-white/70 backdrop-blur-xl rounded-[24px] border border-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] animate-slide-up-fade">
+           <div className="w-12 h-12 mb-5">
+              <svg viewBox="0 0 100 100" className="w-full h-full">
+                <path d="M 5 20 Q 50 35 95 20 Q 75 35 60 35 L 60 80 L 70 100 L 30 100 L 40 80 L 40 35 Q 25 35 5 20 Z" fill="#dc2626" />
+              </svg>
+           </div>
+           
+           <h1 className="text-3xl font-medium text-gray-900 mb-2 tracking-tight">Tito<span className="text-red-600">Vest</span></h1>
+           <p className="text-gray-500 text-sm mb-10">O seu controle financeiro começa aqui.</p>
+           
+           <input 
+             type="text" 
+             placeholder="Como podemos te chamar?" 
+             value={welcomeName} 
+             onChange={e=>setWelcomeName(e.target.value)} 
+             onKeyDown={(e) => { if(e.key === 'Enter' && welcomeName.trim()) setUserName(welcomeName.trim()) }}
+             className="w-full px-5 py-4 bg-white/60 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] focus:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300 text-gray-800 font-medium mb-6 text-center placeholder:text-gray-400" 
+           />
+           
+           <button 
+             onClick={() => {if(welcomeName.trim()) setUserName(welcomeName.trim())}} 
+             className="w-full py-4 bg-red-500 text-white font-medium uppercase tracking-widest rounded-2xl hover:bg-red-600 hover:scale-[1.03] transition-all duration-300 shadow-xl shadow-red-500/20 flex items-center justify-center gap-2"
+           >
+             Entrar <ArrowRight className="w-4 h-4"/>
+           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Renderizadores Dinâmicos de Telas ---
+
+  // TELA 1: HOME (Visão Geral)
+  const renderHome = () => (
+    <>
+      <h2 className="text-2xl font-medium text-gray-800 animate-fade-in mb-4 md:mb-0">Visão Geral</h2>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10">
+        <div className="lg:col-span-4 flex flex-col gap-6 md:gap-10">
+          <div className="clean-card p-6 md:p-10 animate-fade-in flex flex-col items-center text-center relative overflow-hidden h-[250px] md:h-[300px] justify-center">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-full blur-[50px] opacity-50 -z-10"></div>
+            <p className="text-sm text-gray-400 font-normal mb-2">Saldo Atual da Carteira</p>
+            <h3 className="text-4xl md:text-5xl font-medium text-gray-800 mb-6 md:mb-8 tracking-tight">
+              <AnimatedNumber value={totalBalance} prefix="R$ " decimals={2} isPrivate={isPrivate} />
+            </h3>
+            <div className="flex gap-3">
+              <span className="hidden sm:inline-block text-xs font-medium text-gray-500 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100">Retorno Mensal</span>
+              <span className="text-xs font-medium text-gray-800 bg-gray-50 px-4 py-2 rounded-lg flex items-center border border-gray-100">
+                <ArrowUpRight className="w-3 h-3 mr-1 text-gray-400" /> +3.5%
+              </span>
+            </div>
+          </div>
+
+          <div className="clean-card p-6 md:p-8 animate-fade-in delay-200">
+            <h3 className="text-base font-medium text-gray-700 mb-4 md:mb-6">Cotações (Mercado)</h3>
+            <div className="flex flex-col gap-4 md:gap-6">
+              {currencies.map((currency) => (
+                <div key={currency.id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 md:gap-4">
+                    <div className="w-10 h-10 md:w-11 md:h-11 bg-white border border-gray-100 rounded-full flex items-center justify-center text-gray-400 shadow-sm shrink-0">
+                      <currency.icon className="w-4 h-4 md:w-5 md:h-5 stroke-[1.5]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">{currency.name}</p>
+                      <p className="text-xs text-gray-400">R$ {currency.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    </div>
+                  </div>
+                  <div className={`text-xs font-medium px-2 py-1 rounded ${currency.isUp ? 'text-gray-800 bg-gray-50' : 'text-red-500 bg-red-50'}`}>
+                    {currency.change}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-8 flex flex-col">
+          <div className="clean-card flex-1 animate-fade-in delay-100 flex flex-col overflow-hidden">
+            <div className="px-5 py-5 md:px-8 md:py-6 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white border-b border-gray-50 gap-4 sm:gap-0">
+              <h3 className="text-base font-medium text-gray-700">Transações Recentes</h3>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <button onClick={() => setTxModal('in')} className="flex-1 sm:flex-none flex items-center justify-center gap-2 text-xs font-medium px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors">
+                  <Plus className="w-3.5 h-3.5" /> Entrada
+                </button>
+                <button onClick={() => setTxModal('out')} className="flex-1 sm:flex-none flex items-center justify-center gap-2 text-xs font-medium px-4 py-2 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg transition-colors">
+                  <Plus className="w-3.5 h-3.5" /> Saída
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex flex-col flex-1 max-h-[400px] overflow-y-auto">
+              {transactions.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center p-8 text-gray-400 text-sm text-center">
+                  <span className="block mb-2 text-gray-300"><Wallet className="w-8 h-8"/></span>
+                  Adicione dados para visualizar suas transações.
+                </div>
+              ) : (
+                transactions.slice(0, 5).map((tx, i) => (
+                  <div key={tx.id} className="px-5 py-4 md:px-8 md:py-6 flex items-center justify-between border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <div className="flex items-center gap-3 md:gap-5">
+                      <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0 ${tx.type === 'in' ? 'bg-gray-50 text-gray-500 border border-gray-100' : 'bg-red-50 text-red-400'}`}>
+                         {tx.type === 'in' ? <ArrowDownRight className="w-4 h-4 md:w-5 md:h-5" /> : <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5" />}
+                      </div>
+                      <div>
+                        <span className="block text-sm font-medium text-gray-700 truncate max-w-[130px] sm:max-w-[200px] md:max-w-none">{tx.name}</span>
+                        <span className="block text-xs text-gray-400 mt-1 uppercase tracking-wider">{tx.time}</span>
+                      </div>
+                    </div>
+                    <div className="hidden sm:block text-xs font-medium text-gray-300 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                      {tx.status}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className={`text-sm font-medium ${tx.type === 'in' ? 'text-gray-900' : 'text-red-500'}`}>
+                        {isPrivate ? '••••' : `R$ ${Math.abs(tx.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="px-5 py-6 md:px-8 md:py-8 border-t border-gray-50 bg-gray-50/30 flex flex-row items-center justify-between mt-auto gap-4">
+              <div className="flex flex-col gap-1 flex-1">
+                <span className="text-sm font-medium text-gray-700">Saúde Financeira Geral</span>
+                <span className="hidden sm:block text-xs text-gray-400">Gestão de gastos e poupança dentro do limite ideal planejado.</span>
+              </div>
+              <div className="relative w-14 h-14 md:w-16 md:h-16 flex items-center justify-center shrink-0">
+                <svg className="w-full h-full absolute inset-0" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="#e5e7eb" strokeWidth="12" />
+                  <circle 
+                    className="progress-ring__circle"
+                    cx="50" cy="50" r="40" 
+                    fill="transparent" 
+                    stroke={healthScore > 60 ? "#10b981" : "#ef4444"} 
+                    strokeWidth="12" 
+                    strokeLinecap="round"
+                    strokeDasharray="251.2" 
+                    strokeDashoffset={251.2 - (251.2 * healthScore) / 100}
+                  />
+                </svg>
+                <span className="text-xs md:text-sm font-bold text-gray-800">{isPrivate ? '••' : `${Math.round(healthScore)}%`}</span>
+              </div>
+            </div>
+            <div className="py-4 md:py-5 bg-white flex justify-center border-t border-gray-50">
+              <button onClick={() => setActiveTab('wallet')} className="text-xs font-medium text-gray-400 hover:text-gray-700 transition-colors uppercase tracking-widest">Ver extrato completo</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="animate-fade-in delay-300 mt-6 md:mt-10">
+        <div className="mb-4 md:mb-6 flex flex-col sm:flex-row justify-between sm:items-end gap-2">
+          <div>
+            <h3 className="text-base font-medium text-gray-800 mb-1">Custos Fixos & Assinaturas</h3>
+            <p className="text-xs font-medium text-red-500 uppercase tracking-widest">
+              Saldo Comprometido: R$ {isPrivate ? '••••' : committedTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
+          {fixedCosts.length === 0 ? (
+             <div className="sm:col-span-2 lg:col-span-4 flex items-center justify-center p-6 bg-white border border-dashed border-gray-200 rounded-2xl text-gray-400 text-sm text-center">
+               Adicione dados para visualizar seus custos.
+             </div>
+          ) : (
+            fixedCosts.slice(0, 4).map((cost) => {
+              const IconCmp = getIcon(cost.iconName);
+              return (
+                <div key={cost.id} className="clean-card p-5 md:p-6 flex flex-row sm:flex-col items-center sm:items-start group hover:shadow-md transition-all gap-4 sm:gap-0">
+                  <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-500 sm:mb-5 transition-colors shrink-0">
+                    <IconCmp className="w-5 h-5 stroke-[1.5]" />
+                  </div>
+                  <div className="flex flex-col flex-1 sm:flex-none">
+                    <span className="text-sm font-medium text-gray-700 mb-1 truncate">{cost.name}</span>
+                    <span className="text-xs text-gray-400 sm:mb-5">Vence dia {cost.due}</span>
+                  </div>
+                  <span className="text-lg font-medium text-gray-800 sm:mt-auto shrink-0">
+                    {isPrivate ? 'R$ •••' : `R$ ${cost.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                  </span>
+                </div>
+              );
+            })
+          )}
+          
+          <div onClick={() => setActiveTab('wallet')} className="clean-card p-5 md:p-6 flex flex-row sm:flex-col items-center sm:justify-center border-dashed border-2 border-gray-100 bg-gray-50/20 hover:border-red-100 hover:bg-red-50/10 cursor-pointer group transition-colors gap-4 sm:gap-0">
+            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-gray-300 group-hover:text-red-500 sm:mb-3 border border-gray-50 transition-colors shadow-sm shrink-0">
+              <ArrowRight className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col flex-1 sm:items-center">
+               <span className="text-sm font-medium text-gray-700 sm:mb-1 sm:text-center">Ver todos os gastos fixos</span>
+               <span className="text-xs font-medium text-gray-400 uppercase tracking-widest">Ir para carteira</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Metas Carrossel */}
+      <div className="animate-fade-in delay-400 mt-6 md:mt-10">
+        <h3 className="text-base font-medium text-gray-700 mb-4 md:mb-6">Andamento das Metas</h3>
+        <div className="clean-card relative overflow-hidden py-8 md:p-10 flex flex-col md:flex-row items-center justify-center gap-12 min-h-[250px]">
+          <button onClick={prevGoal} className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 p-2 md:p-3 text-gray-300 hover:text-red-500 z-20">
+            <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 stroke-[1]" />
+          </button>
+          <button onClick={nextGoal} className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 p-2 md:p-3 text-gray-300 hover:text-red-500 z-20">
+            <ChevronRight className="w-6 h-6 md:w-8 md:h-8 stroke-[1]" />
+          </button>
+
+          <div className="w-full max-w-lg overflow-hidden px-8 md:px-0">
+            <div className="flex transition-transform duration-1000 ease-in-out" style={{ transform: `translateX(-${goalIndex * 100}%)` }}>
+              {goals.length === 0 ? (
+                <p className="text-center text-gray-400 text-sm w-full">Adicione dados para visualizar suas metas no perfil.</p>
+              ) : (
+                goals.map((goal, index) => {
+                  const isActive = index === goalIndex;
+                  const perc = isActive ? Math.min(((goal.current || 0) / (goal.target || 1)) * 100, 100) : 0;
+                  return (
+                    <div key={goal.id} className="min-w-full flex flex-col md:flex-row items-center gap-6 md:gap-12 px-2 md:px-10">
+                      <div className="relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center shrink-0">
+                        <svg className="w-full h-full absolute inset-0" viewBox="0 0 100 100">
+                          <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f3f4f6" strokeWidth="8" />
+                          <circle className="progress-ring__circle" cx="50" cy="50" r="40" fill="transparent" stroke="#dc2626" strokeWidth="8" strokeLinecap="round" strokeDasharray="251.2" strokeDashoffset={251.2 - (251.2 * perc) / 100} />
+                        </svg>
+                        <span className="text-lg md:text-2xl font-medium text-gray-800">{isPrivate ? '••%' : `${Math.round(perc)}%`}</span>
+                      </div>
+                      <div className="text-center md:text-left">
+                        <h4 className="text-lg md:text-xl font-medium text-gray-800 mb-2 md:mb-3">{goal.name}</h4>
+                        <p className="text-sm text-gray-400 mb-1">Atual: <span className="text-gray-700 font-medium">{isPrivate ? 'R$ •••' : `R$ ${(goal.current || 0).toLocaleString('pt-BR')}`}</span></p>
+                        <p className="text-sm text-gray-400">Objetivo: <span className="text-gray-700 font-medium">{isPrivate ? 'R$ •••' : `R$ ${(goal.target || 0).toLocaleString('pt-BR')}`}</span></p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  // TELA 2: CARTEIRA 
+  const renderWallet = () => (
+    <>
+      <h2 className="text-2xl font-medium text-gray-800 animate-fade-in mb-4 md:mb-6">Gestão da Carteira</h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8 animate-fade-in">
+        <div className="clean-card p-5 md:p-6 flex items-center gap-4 md:gap-5 border-l-4 border-l-gray-800">
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gray-50 text-gray-600 flex items-center justify-center shrink-0">
+            <ArrowDownRight className="w-5 h-5 md:w-6 md:h-6" />
+          </div>
+          <div>
+            <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-1">Total de Entradas</p>
+            <p className="text-xl md:text-2xl font-medium text-gray-800">
+              <AnimatedNumber value={totalIn} prefix="R$ " decimals={2} isPrivate={isPrivate} />
+            </p>
+          </div>
+        </div>
+        <div className="clean-card p-5 md:p-6 flex items-center gap-4 md:gap-5 border-l-4 border-l-red-500">
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+            <ArrowUpRight className="w-5 h-5 md:w-6 md:h-6" />
+          </div>
+          <div>
+            <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-1">Total de Saídas</p>
+            <p className="text-xl md:text-2xl font-medium text-red-500">
+              <AnimatedNumber value={totalOut} prefix="R$ " decimals={2} isPrivate={isPrivate} />
+            </p>
+          </div>
+        </div>
+        
+        {/* CARD CORRIGIDO: SALDO ATUAL (INTEGRAÇÃO E CONTRASTE) */}
+        <div className="clean-card p-5 md:p-6 flex items-center gap-4 md:gap-5 border-l-4 border-l-emerald-500 shadow-md transition-colors duration-300">
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+            <Wallet className="w-5 h-5 md:w-6 md:h-6" />
+          </div>
+          <div className="flex flex-col w-full">
+            <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-1">Saldo Atual</p>
+            <p className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">
+              <AnimatedNumber value={totalBalance} prefix="R$ " decimals={2} isPrivate={isPrivate} />
+            </p>
+            <div className="flex gap-3 mt-1.5 w-full justify-between pr-2">
+              <span className="text-[9px] md:text-[10px] text-gray-500 font-medium">Livre: R$ {isPrivate ? '••••' : availableBalance.toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
+              <span className="text-[9px] md:text-[10px] text-emerald-500 font-semibold">Investido: R$ {isPrivate ? '••••' : totalInvested.toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10">
+        <div className="lg:col-span-7 flex flex-col gap-6 animate-fade-in delay-100">
+          
+          <div className="clean-card p-6 md:p-8 flex flex-col md:flex-row justify-between gap-6 md:gap-8 relative overflow-hidden">
+            <div className="absolute -right-20 -top-20 w-40 h-40 bg-gray-50 rounded-full blur-[40px] opacity-50 pointer-events-none"></div>
+            
+            <div className="flex-1">
+              <label className="text-xs text-gray-400 uppercase tracking-widest font-medium mb-3 block">Salário Mensal / Renda Base</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">R$</span>
+                <input 
+                  type="number" 
+                  value={salaryInput} 
+                  onChange={(e) => setSalaryInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if(e.key === 'Enter') {
+                      e.preventDefault();
+                      setSalaryConfirmModal(Number(e.target.value) || 0);
+                    }
+                  }}
+                  placeholder="0.00"
+                  className="w-full pl-11 pr-4 py-3 md:py-4 text-lg md:text-xl font-medium text-gray-800 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 focus:bg-transparent transition-all shadow-inner" 
+                />
+              </div>
+              <p className="text-[9px] md:text-[10px] text-gray-400 mt-2">Pressione <strong className="text-gray-500">ENTER</strong> para confirmar as alterações.</p>
+            </div>
+
+            <div className={`flex-1 rounded-2xl p-5 md:p-6 border ${finalForecast >= 0 ? 'bg-emerald-50/50 border-emerald-100' : 'bg-red-50/50 border-red-100'} flex flex-col justify-center relative smart-badge`}>
+              <div className="flex items-center gap-2 mb-2">
+                <Target className={`w-4 h-4 ${finalForecast >= 0 ? 'text-emerald-500' : 'text-red-500'}`} />
+                <span className={`text-xs font-semibold uppercase tracking-widest ${finalForecast >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>Previsão de Sobra</span>
+              </div>
+              <p className="text-xs md:text-sm text-gray-600 leading-relaxed">
+                Se você mantiver esse padrão, terá <span className={`font-bold text-base md:text-lg ${finalForecast >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>R$ {isPrivate ? '••••' : finalForecast.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span> no fim do mês.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+            <div className="clean-card p-5 md:p-6">
+              <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-2 md:mb-3">Após Gastos Fixos</p>
+              <p className="text-xl md:text-2xl font-medium text-gray-700">
+                <AnimatedNumber value={availableAfterFixed} prefix="R$ " decimals={2} isPrivate={isPrivate} />
+              </p>
+              <p className="text-xs text-gray-400 mt-2">Salário - Custos Fixos</p>
+            </div>
+            
+            <div className="clean-card p-5 md:p-6 border-b-4 border-b-red-400">
+              <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-2 md:mb-3 flex items-center gap-2"><Activity className="w-3 h-3"/> Média Variáveis</p>
+              <p className="text-xl md:text-2xl font-medium text-red-500">
+                <AnimatedNumber value={avgVariableCosts} prefix="R$ " decimals={2} isPrivate={isPrivate} />
+              </p>
+              <p className="text-xs text-gray-400 mt-2">Baseado nas transações</p>
+            </div>
+          </div>
+
+          <div className="clean-card p-6 md:p-8">
+            <h3 className="text-base font-medium text-gray-800 mb-4 md:mb-6 flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-gray-400" /> Investimentos Externos
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              
+              {/* CONVERSÕES AUTOMÁTICAS E OUTROS */}
+              <div className="p-3 md:p-4 bg-gray-50 rounded-xl border border-gray-100 focus-within:bg-white focus-within:border-gray-300 transition-colors">
+                <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-1 md:mb-2">USD</p>
+                <input type="number" value={investmentsExt.usd !== undefined ? investmentsExt.usd : ''} onChange={(e) => setInvestmentsExt({...investmentsExt, usd: e.target.value})} placeholder="0.00" className="w-full bg-transparent text-base md:text-lg font-medium text-gray-800 focus:outline-none" />
+                {(Number(investmentsExt.usd) > 0) && <p className="text-[10px] text-emerald-500 mt-1 opacity-80">≈ R$ {(Number(investmentsExt.usd) * 5.00).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>}
+              </div>
+
+              <div className="p-3 md:p-4 bg-gray-50 rounded-xl border border-gray-100 focus-within:bg-white focus-within:border-gray-300 transition-colors">
+                <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-1 md:mb-2">EUR</p>
+                <input type="number" value={investmentsExt.eur !== undefined ? investmentsExt.eur : ''} onChange={(e) => setInvestmentsExt({...investmentsExt, eur: e.target.value})} placeholder="0.00" className="w-full bg-transparent text-base md:text-lg font-medium text-gray-800 focus:outline-none" />
+                {(Number(investmentsExt.eur) > 0) && <p className="text-[10px] text-emerald-500 mt-1 opacity-80">≈ R$ {(Number(investmentsExt.eur) * 5.40).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>}
+              </div>
+
+              <div className="p-3 md:p-4 bg-gray-50 rounded-xl border border-gray-100 focus-within:bg-white focus-within:border-gray-300 transition-colors">
+                <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-1 md:mb-2">BTC</p>
+                <input type="number" value={investmentsExt.btc !== undefined ? investmentsExt.btc : ''} onChange={(e) => setInvestmentsExt({...investmentsExt, btc: e.target.value})} placeholder="0.00" className="w-full bg-transparent text-base md:text-lg font-medium text-gray-800 focus:outline-none" />
+                {(Number(investmentsExt.btc) > 0) && <p className="text-[10px] text-emerald-500 mt-1 opacity-80">≈ R$ {(Number(investmentsExt.btc) * 345120.00).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>}
+              </div>
+
+              {/* Botão Outros Personalizados */}
+              <div onClick={() => setCustomInvModal(true)} className="p-3 md:p-4 bg-gray-50/40 rounded-xl border border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors cursor-pointer flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 min-h-[70px]">
+                 <Plus className="w-5 h-5 mb-1"/>
+                 <span className="text-[10px] uppercase tracking-widest font-medium">Outros</span>
+              </div>
+            </div>
+
+            {/* Listagem de Investimentos Personalizados ("Outros") */}
+            {customInvestments.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-50 space-y-2 animate-fade-in">
+                <span className="text-[10px] text-gray-400 font-medium uppercase tracking-widest block mb-3">Investimentos Personalizados</span>
+                {customInvestments.map(inv => (
+                  <div key={inv.id} className="flex justify-between items-center p-3 bg-white border border-gray-100 rounded-lg shadow-sm">
+                    <span className="text-xs font-medium text-gray-700">{inv.name}</span>
+                    <div className="flex items-center gap-3 md:gap-4">
+                       <span className="text-sm font-medium text-gray-800">R$ {isPrivate ? '••••' : inv.amount.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                       <button onClick={() => {
+                         setCustomInvestments(customInvestments.filter(c => c.id !== inv.id));
+                         showToast('Investimento removido');
+                       }} className="text-gray-300 hover:text-red-500 transition-colors p-1"><Trash2 className="w-3 h-3"/></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="lg:col-span-5 flex flex-col gap-6 animate-fade-in delay-200">
+          
+          <div className="clean-card flex flex-col flex-1 h-[420px] max-h-[420px]">
+            <div className="p-5 md:p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30 rounded-t-2xl">
+              <div>
+                <h3 className="text-base font-medium text-gray-800">Custos Fixos & Assinaturas</h3>
+                <p className="text-[10px] md:text-xs text-red-500 font-medium mt-1 uppercase tracking-widest">Total: R$ {isPrivate ? '••••' : committedTotal.toLocaleString('pt-BR', {minimumFractionDigits:2})}</p>
+              </div>
+              <button onClick={() => setFixedCostModal(true)} className="w-8 h-8 rounded-lg bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-600 hover:text-red-500 hover:border-red-100 transition-colors">
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-2">
+              {fixedCosts.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center h-full p-8 text-gray-400 text-sm text-center">Adicione dados para visualizar seus custos fixos.</div>
+              ) : (
+                fixedCosts.map((cost) => {
+                  const IconCmp = getIcon(cost.iconName);
+                  return (
+                    <div key={cost.id} className="flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 rounded-xl transition-colors group border-b border-transparent hover:border-gray-50">
+                      <div className="flex items-center gap-3 md:gap-4 truncate">
+                        <div className="w-10 h-10 bg-white border border-gray-100 rounded-lg flex items-center justify-center text-gray-400 group-hover:text-red-400 shadow-sm transition-colors shrink-0">
+                          <IconCmp className="w-4 h-4" />
+                        </div>
+                        <div className="truncate">
+                          <p className="text-sm font-medium text-gray-700 truncate">{cost.name}</p>
+                          <p className="text-xs text-gray-400">Dia {cost.due}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 md:gap-4 shrink-0">
+                        <span className="text-sm font-medium text-gray-800">R$ {isPrivate ? '•••' : (cost.amount || 0).toFixed(2)}</span>
+                        <button onClick={() => removeFixedCost(cost.id)} className="text-gray-300 hover:text-red-500 p-2 md:p-0 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          <div className="clean-card flex flex-col flex-1 h-[300px] max-h-[300px]">
+            <div className="p-5 md:p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30 rounded-t-2xl">
+              <h3 className="text-base font-medium text-gray-800 flex items-center gap-2">
+                <Landmark className="w-4 h-4 md:w-5 md:h-5 text-emerald-500" /> Renda Fixa Brasil
+              </h3>
+              <button onClick={() => setInvModal(true)} className="text-[10px] md:text-xs font-medium text-gray-500 hover:text-emerald-600 bg-white border border-gray-100 px-3 py-1.5 rounded-lg shadow-sm transition-colors">Adicionar</button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3">
+              {investmentsBr.length === 0 ? (
+                <div className="flex items-center justify-center h-full p-4 text-gray-400 text-xs text-center">Adicione dados para visualizar investimentos em renda fixa.</div>
+              ) : (
+                investmentsBr.map((inv) => (
+                  <div key={inv.id} className="flex flex-col p-3 md:p-4 bg-white border border-gray-100 shadow-sm rounded-xl hover:border-emerald-100 transition-colors group">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-gray-800">{inv.type}</span>
+                        <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest">{inv.bank}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                         <span className="text-sm font-medium text-gray-800">R$ {isPrivate ? '••••' : (inv.amount || 0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
+                         <button onClick={() => {
+                           setInvestmentsBr(investmentsBr.filter(c => c.id !== inv.id));
+                           showToast('Renda fixa removida');
+                         }} className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-3 h-3"/></button>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-50">
+                      <span className="text-[10px] md:text-xs text-gray-400">Estimativa (1 Ano)</span>
+                      <span className="text-[10px] md:text-xs font-semibold text-emerald-500">+{inv.rate}% (R$ {isPrivate ? '••' : ((inv.amount || 0) * (inv.rate/100)).toLocaleString('pt-BR', {minimumFractionDigits:2})})</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  // TELA 3: PERFIL
+  const renderProfile = () => (
+    <>
+      <h2 className="text-2xl font-medium text-gray-800 animate-fade-in mb-4 md:mb-6">Seu Perfil Financeiro</h2>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-10 animate-fade-in">
+        <div className="clean-card p-5 md:p-6 flex flex-col justify-center">
+          <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-1 md:mb-2">Salário Base</p>
+          <p className="text-xl md:text-2xl font-medium text-gray-800"><AnimatedNumber value={salary} prefix="R$ " isPrivate={isPrivate}/></p>
+        </div>
+        <div className="clean-card p-5 md:p-6 flex flex-col justify-center">
+          <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-1 md:mb-2">Gastos Fixos</p>
+          <p className="text-xl md:text-2xl font-medium text-gray-800"><AnimatedNumber value={committedTotal} prefix="R$ " isPrivate={isPrivate}/></p>
+        </div>
+        <div className="clean-card p-5 md:p-6 flex flex-col justify-center">
+          <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-1 md:mb-2">Gastos Variáveis</p>
+          <p className="text-xl md:text-2xl font-medium text-red-500"><AnimatedNumber value={avgVariableCosts} prefix="R$ " isPrivate={isPrivate}/></p>
+        </div>
+        <div className="clean-card p-5 md:p-6 flex flex-col justify-center border-b-4 border-emerald-400">
+          <p className="text-[10px] md:text-xs text-emerald-500 font-semibold uppercase tracking-widest mb-1 md:mb-2">Dinheiro Livre</p>
+          <p className="text-xl md:text-2xl font-medium text-emerald-600"><AnimatedNumber value={finalForecast} prefix="R$ " isPrivate={isPrivate}/></p>
+          <p className="text-[10px] md:text-xs text-blue-500 mt-2 font-medium">Valor investido: R$ {isPrivate ? '••••' : totalInvested.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10 mb-8 md:mb-10">
+        <div className="lg:col-span-8 flex flex-col">
+          <div className="clean-card p-6 md:p-8 animate-fade-in delay-100 flex-1 flex flex-col justify-center">
+            <h3 className="text-base font-medium text-gray-800 mb-6 md:mb-8">Resumo Financeiro</h3>
+            
+            <div className="flex flex-col gap-6 md:gap-8">
+              <div>
+                 <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-1">Patrimônio Atual</p>
+                 <p className="text-3xl md:text-4xl font-medium text-gray-800">
+                   <AnimatedNumber value={totalBalance} prefix="R$ " decimals={2} isPrivate={isPrivate} />
+                 </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                 <div>
+                    <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-1">Econ. Mensal Estimada</p>
+                    <p className="text-lg md:text-xl font-medium text-emerald-500">
+                      <AnimatedNumber value={finalForecast} prefix="R$ " decimals={2} isPrivate={isPrivate} />
+                    </p>
+                 </div>
+                 <div>
+                    <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-1">Renda Poupada</p>
+                    <p className="text-lg md:text-xl font-medium text-gray-700">
+                      {isPrivate ? '••%' : `${Math.max(0, Math.round(savingsRate))}%`}
+                    </p>
+                 </div>
+              </div>
+
+              <div className="mt-2">
+                 <div className="flex justify-between items-end mb-2">
+                   <span className="text-[10px] md:text-sm text-gray-500">Você está economizando <span className="font-semibold text-gray-700">{Math.max(0, Math.round(savingsRate))}%</span> da sua renda mensal.</span>
+                 </div>
+                 <div className="w-full bg-gray-100 rounded-full h-3 md:h-4 overflow-hidden">
+                    <div className="bg-emerald-500 h-full transition-all duration-1000 ease-out" style={{ width: `${Math.min(Math.max(savingsRate, 0), 100)}%` }}></div>
+                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-4 flex flex-col">
+          <div className="clean-card p-8 md:p-10 animate-fade-in delay-200 text-center flex-1 flex flex-col items-center justify-center relative overflow-hidden min-h-[250px]">
+            <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-emerald-500 rounded-full blur-[60px] opacity-10"></div>
+            <h3 className="text-base font-medium text-gray-800 mb-6 md:mb-8">Score de Saúde Financeira</h3>
+            
+            <div className="relative w-32 h-32 md:w-40 md:h-40 flex items-center justify-center mb-6">
+              <svg className="w-full h-full absolute inset-0" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#e5e7eb" strokeWidth="8" />
+                <circle 
+                  className="progress-ring__circle"
+                  cx="50" cy="50" r="40" 
+                  fill="transparent" 
+                  stroke={healthScore > 60 ? "#34d399" : "#ef4444"} 
+                  strokeWidth="8" 
+                  strokeLinecap="round"
+                  strokeDasharray="251.2" 
+                  strokeDashoffset={251.2 - (251.2 * healthScore) / 100}
+                />
+              </svg>
+              <span className="text-4xl md:text-5xl font-semibold tracking-tight text-gray-800">{isPrivate ? '••' : `${Math.round(healthScore)}`}</span>
+            </div>
+            <p className="text-xs md:text-sm text-gray-500 px-2 md:px-4">
+              {healthScore > 60 ? 'Finanças equilibradas e organizadas.' : 'Cuidado, proporção perigosa.'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="clean-card p-6 md:p-8 animate-fade-in delay-300 w-full mb-8 md:mb-12">
+         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 md:mb-8 border-b border-gray-50 pb-4 gap-4 sm:gap-0">
+            <h3 className="text-lg font-medium text-gray-800">Suas Metas</h3>
+            <button onClick={() => setGoalModal(true)} className="flex items-center justify-center gap-2 text-xs font-medium bg-red-50 text-red-500 px-4 py-2.5 sm:py-2 rounded-lg hover:bg-red-100 transition-colors w-full sm:w-auto">
+               <Plus className="w-4 h-4"/> Adicionar Meta
+            </button>
+         </div>
+         
+         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {goals.length === 0 ? (
+               <p className="text-gray-400 text-sm col-span-full text-center py-4">Adicione dados para visualizar suas metas.</p>
+            ) : (
+              goals.map(goal => {
+                const perc = Math.min(((goal.current || 0) / (goal.target || 1)) * 100, 100);
+                return (
+                  <div key={goal.id} className="flex items-center gap-4 md:gap-6 p-4 border border-gray-50 bg-gray-50/30 rounded-2xl flex-col min-[400px]:flex-row text-center min-[400px]:text-left">
+                     <div className="relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center shrink-0">
+                        <svg className="w-full h-full absolute inset-0" viewBox="0 0 100 100">
+                          <circle cx="50" cy="50" r="40" fill="transparent" stroke="#e5e7eb" strokeWidth="8" />
+                          <circle className="progress-ring__circle" cx="50" cy="50" r="40" fill="transparent" stroke="#dc2626" strokeWidth="8" strokeLinecap="round" strokeDasharray="251.2" strokeDashoffset={251.2 - (251.2 * perc) / 100} />
+                        </svg>
+                        <span className="text-xs md:text-sm font-bold text-gray-700">{isPrivate ? '••' : `${Math.round(perc)}%`}</span>
+                     </div>
+                     <div className="flex flex-col">
+                        <span className="font-medium text-gray-800 mb-1">{goal.name}</span>
+                        <span className="text-xs text-gray-400">Objetivo: R$ {isPrivate ? '••••' : (goal.target || 0).toLocaleString('pt-BR')}</span>
+                        <span className="text-xs text-gray-500 font-medium">Atual: R$ {isPrivate ? '••••' : (goal.current || 0).toLocaleString('pt-BR')}</span>
+                     </div>
+                  </div>
+                )
+              })
+            )}
+         </div>
+      </div>
+    </>
+  );
+
+  // TELA 4: ESTATÍSTICAS
+  const renderStats = () => (
+    <div className="flex-1 flex flex-col items-center justify-center text-center animate-fade-in relative py-20 px-4">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 md:w-96 md:h-96 bg-red-50 rounded-full blur-[100px] opacity-60 pointer-events-none"></div>
+      
+      <div className="z-10 flex flex-col items-center animate-float">
+        <div className="w-20 h-20 md:w-24 md:h-24 bg-white/50 backdrop-blur-md border border-white rounded-3xl flex items-center justify-center mb-6 md:mb-8 shadow-xl shadow-red-100/50">
+          <LineChartIcon className="w-8 h-8 md:w-10 md:h-10 text-red-500 drop-shadow-sm" />
+        </div>
+        <h2 className="text-2xl md:text-3xl font-medium text-gray-800 mb-3 md:mb-4 tracking-tight">Análises em Construção</h2>
+        <p className="text-gray-500 max-w-md mt-2 text-xs md:text-sm leading-relaxed mb-8 md:mb-10">
+          Estamos desenvolvendo esta área. Em breve você terá acesso a análises completas e insights com inteligência artificial sobre a sua carteira.
+        </p>
+        <button onClick={() => setActiveTab('wallet')} className="px-6 md:px-8 py-3 md:py-3.5 bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium rounded-2xl transition-all shadow-lg shadow-gray-800/20 flex items-center gap-2">
+          <Briefcase className="w-4 h-4"/> Ir para Carteira
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'home': return renderHome();
+      case 'wallet': return renderWallet();
+      case 'profile': return renderProfile();
+      case 'stats': return renderStats();
+      default: return renderHome();
+    }
+  };
+
+  // --- ESTRUTURA PRINCIPAL ---
+  return (
+    <>
+      <style>{customStyles}</style>
+      
+      {/* Wrapper Principal Sensível ao Tema */}
+      <div className={`flex h-screen w-full overflow-hidden relative transition-colors duration-300 ${isDarkMode ? 'theme-dark bg-[#0a0a0a]' : 'bg-[#f8f9fa]'}`}>
+        
+        {/* Sidebar Esquerda (Desktop) */}
+        <aside className="hidden md:flex w-20 bg-white border-r border-gray-100 flex-col items-center py-8 z-20 flex-shrink-0 transition-colors duration-300">
+          <div onClick={() => setActiveTab('home')} className="mb-12 group cursor-pointer" title="TitoVest">
+            <svg viewBox="0 0 100 100" className="w-10 h-10 drop-shadow-sm group-hover:scale-105 transition-transform">
+              <path d="M 5 20 Q 50 35 95 20 Q 75 35 60 35 L 60 80 L 70 100 L 30 100 L 40 80 L 40 35 Q 25 35 5 20 Z" fill="#dc2626" />
+            </svg>
+          </div>
+
+          <nav className="flex flex-col gap-8 flex-1 w-full mt-2">
+            {[
+              { id: 'home', icon: Home, title: "Início" },
+              { id: 'wallet', icon: Wallet, title: "Carteira" },
+              { id: 'profile', icon: User, title: "Perfil" },
+              { id: 'stats', icon: BarChart2, title: "Estatísticas" }
+            ].map((item) => (
+              <div key={item.id} onClick={() => setActiveTab(item.id)} title={item.title} className="relative group flex justify-center cursor-pointer">
+                {activeTab === item.id && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-red-500 rounded-r-md transition-all"></div>}
+                <div className={`p-2 rounded-lg transition-colors ${activeTab === item.id ? 'text-red-500 bg-red-50' : 'text-gray-300 hover:text-red-500 hover:bg-red-50'}`}>
+                  <item.icon className="w-6 h-6 stroke-[1.5]" />
+                </div>
+              </div>
+            ))}
+          </nav>
+
+          <div className="mt-auto">
+             <div onClick={() => showToast('Configurações indisponíveis no momento.')} className="p-2 text-gray-300 hover:text-gray-600 transition-colors cursor-pointer">
+              <Menu className="w-6 h-6" />
+            </div>
+          </div>
+        </aside>
+
+        {/* Área Principal */}
+        <main className="flex-1 flex flex-col h-full overflow-y-auto relative">
+          
+          {/* Header Superior */}
+          <header className="bg-white/90 backdrop-blur-md sticky top-0 z-30 px-5 md:px-10 py-4 md:py-5 flex justify-between items-center border-b border-gray-100 transition-colors duration-300">
+            <div className="flex items-center gap-3">
+              <div className="md:hidden w-8 h-8 cursor-pointer" onClick={() => setActiveTab('home')}>
+                <svg viewBox="0 0 100 100" className="w-full h-full">
+                  <path d="M 5 20 Q 50 35 95 20 Q 75 35 60 35 L 60 80 L 70 100 L 30 100 L 40 80 L 40 35 Q 25 35 5 20 Z" fill="#dc2626" />
+                </svg>
+              </div>
+              <h1 className="text-lg md:text-xl font-medium text-gray-700 tracking-tight cursor-pointer transition-colors duration-300" onClick={() => setActiveTab('home')}>
+                Tito<span className="text-red-500">Vest</span>
+              </h1>
+            </div>
+
+            <div className="flex items-center gap-3 md:gap-6">
+              <div className="flex gap-2 md:gap-4 items-center">
+                <button onClick={() => setIsPrivate(!isPrivate)} className="p-2 text-gray-400 hover:text-gray-800 bg-gray-50/50 rounded-full transition-colors">
+                  {isPrivate ? <EyeOff className="w-4 h-4 md:w-5 md:h-5" /> : <Eye className="w-4 h-4 md:w-5 md:h-5" />}
+                </button>
+                <button onClick={() => showToast('Página de histórico a caminho!')} className="hidden sm:block p-2 text-gray-400 hover:text-gray-800 bg-gray-50/50 rounded-full transition-colors">
+                  <Clock className="w-4 h-4" />
+                </button>
+                <button onClick={() => showToast('Sem mensagens.')} className="hidden sm:block p-2 text-gray-400 hover:text-gray-800 bg-gray-50/50 rounded-full transition-colors">
+                  <MessageSquare className="w-4 h-4" />
+                </button>
+                
+                {/* NOVO BOTÃO: DARK / LIGHT MODE */}
+                <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 text-gray-400 hover:text-gray-800 bg-gray-50/50 rounded-full transition-colors relative">
+                  {isDarkMode ? <Sun className="w-4 h-4 md:w-5 md:h-5" /> : <Moon className="w-4 h-4 md:w-5 md:h-5" />}
+                </button>
+
+                <div className="relative">
+                  <button onClick={() => setShowNotifs(!showNotifs)} className="p-2 text-gray-400 hover:text-red-500 bg-gray-50/50 rounded-full transition-colors relative">
+                    <Bell className="w-4 h-4 md:w-5 md:h-5" />
+                    <span className="absolute top-1.5 right-1.5 md:top-2 md:right-2 w-1.5 h-1.5 bg-red-500 rounded-full border border-white"></span>
+                  </button>
+                  
+                  {showNotifs && (
+                    <div className="absolute right-0 mt-3 w-64 md:w-72 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 py-2 animate-fade-in transition-colors duration-300">
+                      <div className="px-4 md:px-5 py-3 border-b border-gray-50 flex justify-between items-center transition-colors duration-300">
+                        <span className="text-sm font-semibold text-gray-800">Notificações</span>
+                        <span className="text-[10px] md:text-xs bg-red-50 text-red-500 px-2 py-0.5 rounded-md font-medium">2 novas</span>
+                      </div>
+                      <div className="px-4 md:px-5 py-4 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-50">
+                        <p className="text-sm font-medium text-gray-700">Bem-vindo, {userName}!</p>
+                        <p className="text-xs text-gray-500 mt-1">Aproveite sua carteira inteligente.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="hidden sm:block w-px h-6 bg-gray-200 mx-1 md:mx-2 transition-colors duration-300"></div>
+
+              <div onClick={() => setActiveTab('profile')} className="flex items-center gap-2 md:gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-medium text-gray-700 transition-colors duration-300">{userName}</p>
+                </div>
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-500 transition-colors hover:bg-gray-100 uppercase font-medium text-xs md:text-base">
+                  {userName ? userName.charAt(0) : <User className="w-4 h-4" />}
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Padding bottom extra no mobile por causa da nav bar */}
+          <div className="p-4 md:p-10 pb-28 md:pb-12 max-w-7xl mx-auto w-full flex-1 flex flex-col">
+            {renderContent()}
+          </div>
+        </main>
+
+        {/* Navigation Bottom Bar (Mobile) */}
+        {userName && (
+          <nav className="md:hidden fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-lg border-t border-gray-100 z-40 flex justify-around items-center px-2 py-2 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.03)] transition-colors duration-300">
+            {[
+              { id: 'home', icon: Home, label: 'Início' },
+              { id: 'wallet', icon: Wallet, label: 'Carteira' },
+              { id: 'profile', icon: User, label: 'Perfil' },
+              { id: 'stats', icon: BarChart2, label: 'Stats' }
+            ].map((item) => (
+              <div key={item.id} onClick={() => setActiveTab(item.id)} className="relative flex flex-col items-center justify-center p-2 w-16 h-12">
+                <item.icon className={`w-5 h-5 mb-1 transition-colors ${activeTab === item.id ? 'text-red-500 stroke-[2]' : 'text-gray-400 stroke-[1.5]'}`} />
+                <span className={`text-[9px] transition-colors ${activeTab === item.id ? 'text-red-500 font-medium' : 'text-gray-400'}`}>{item.label}</span>
+              </div>
+            ))}
+          </nav>
+        )}
+
+        {/* MODAL: Confirmação de Salário */}
+        {salaryConfirmModal !== null && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-gray-900/20 backdrop-blur-sm animate-fade-in">
+             <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden mx-auto transition-colors duration-300">
+                <div className="p-6 md:p-8 space-y-4">
+                   <h3 className="text-lg font-medium text-gray-800">Adicionar salário como transação?</h3>
+                   <p className="text-sm text-gray-500 leading-relaxed">
+                     Você gostaria de adicionar esse valor como uma entrada nas transações recentes? Isso ajuda a manter seu dashboard atualizado automaticamente.
+                   </p>
+                </div>
+                <div className="p-6 md:p-8 pt-0 flex gap-3 md:gap-4 flex-col">
+                   <button onClick={() => {
+                      setSalary(salaryConfirmModal);
+                      const nTx = {
+                        id: Date.now(),
+                        name: 'Salário Mensal',
+                        status: 'Concluído',
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        amount: salaryConfirmModal,
+                        type: 'in'
+                      };
+                      setTransactions([nTx, ...transactions]);
+                      setSalaryConfirmModal(null);
+                      showToast('Salário e transação adicionados!');
+                   }} className="w-full py-3 md:py-4 bg-emerald-500 text-white text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-100 hover:-translate-y-0.5">Sim, adicionar</button>
+                   
+                   <button onClick={() => {
+                      setSalary(salaryConfirmModal);
+                      setSalaryConfirmModal(null);
+                      showToast('Salário atualizado!');
+                   }} className="w-full py-3 md:py-4 text-gray-600 bg-gray-100 text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-200 transition-colors">Não</button>
+                </div>
+             </div>
+          </div>
+        )}
+
+        {/* MODAL: Nova Transação */}
+        {txModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-gray-900/20 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden mx-auto transition-colors duration-300">
+              <div className="flex justify-between items-center p-6 md:p-8 border-b border-gray-50 transition-colors duration-300">
+                <h3 className="text-base md:text-lg font-medium text-gray-800 tracking-tight flex items-center gap-2">
+                  {txModal === 'in' ? <ArrowDownRight className="w-5 h-5 text-gray-600" /> : <ArrowUpRight className="w-5 h-5 text-red-500" />}
+                  Registar {txModal === 'in' ? 'Entrada' : 'Saída'}
+                </h3>
+                <button onClick={() => setTxModal(null)} className="p-2 text-gray-400 hover:text-gray-700 transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <div className="p-6 md:p-8 space-y-4 md:space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor (R$)</label>
+                  <input type="number" value={newTx.amount || ''} onChange={e => setNewTx({...newTx, amount: e.target.value})} placeholder="0.00" className="w-full px-4 md:px-5 py-3 md:py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 focus:bg-transparent transition-colors text-gray-800 font-medium text-sm md:text-base" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Descrição</label>
+                  <input type="text" value={newTx.desc || ''} onChange={e => setNewTx({...newTx, desc: e.target.value})} placeholder="Ex: Salário, Lanche..." className="w-full px-4 md:px-5 py-3 md:py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 focus:bg-transparent transition-colors text-gray-800 text-sm md:text-base" />
+                </div>
+              </div>
+              <div className="p-6 md:p-8 pt-0 flex gap-3 md:gap-4">
+                <button onClick={() => setTxModal(null)} className="flex-1 py-3 md:py-4 text-gray-600 text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
+                <button onClick={handleAddTx} className={`flex-1 py-3 md:py-4 text-white text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl transition-all shadow-lg hover:-translate-y-0.5 ${txModal === 'in' ? 'bg-gray-800 shadow-gray-200' : 'bg-red-500 shadow-red-100'}`}>Salvar</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: Novo Gasto Fixo */}
+        {fixedCostModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-gray-900/20 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden mx-auto transition-colors duration-300">
+              <div className="flex justify-between items-center p-6 md:p-8 border-b border-gray-50 transition-colors duration-300">
+                <h3 className="text-base md:text-lg font-medium text-gray-800 tracking-tight flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-gray-600" /> Novo Gasto Fixo
+                </h3>
+                <button onClick={() => setFixedCostModal(false)} className="p-2 text-gray-400 hover:text-gray-700 transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <div className="p-6 md:p-8 space-y-4 md:space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Nome da Conta</label>
+                  <input type="text" value={newFixedCost.name || ''} onChange={e => setNewFixedCost({...newFixedCost, name: e.target.value})} placeholder="Ex: Academia" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 text-gray-800 text-sm md:text-base transition-colors" />
+                </div>
+                <div className="flex gap-3 md:gap-4">
+                  <div className="space-y-2 flex-1">
+                    <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor</label>
+                    <input type="number" value={newFixedCost.amount || ''} onChange={e => setNewFixedCost({...newFixedCost, amount: e.target.value})} placeholder="0.00" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 text-gray-800 font-medium text-sm md:text-base transition-colors" />
+                  </div>
+                  <div className="space-y-2 w-1/3">
+                    <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Dia</label>
+                    <input type="text" value={newFixedCost.due || ''} onChange={e => setNewFixedCost({...newFixedCost, due: e.target.value})} placeholder="15" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 text-gray-800 text-center text-sm md:text-base transition-colors" />
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 md:p-8 pt-0 flex gap-3 md:gap-4">
+                <button onClick={() => setFixedCostModal(false)} className="flex-1 py-3 md:py-4 text-gray-600 text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
+                <button onClick={handleAddFixedCost} className="flex-1 py-3 md:py-4 bg-gray-800 text-white text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-900 transition-colors shadow-lg shadow-gray-200 hover:-translate-y-0.5">Adicionar</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: Novo Investimento Brasil */}
+        {invModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-gray-900/20 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden mx-auto transition-colors duration-300">
+              <div className="flex justify-between items-center p-6 md:p-8 border-b border-gray-50 transition-colors duration-300">
+                <h3 className="text-base md:text-lg font-medium text-gray-800 tracking-tight flex items-center gap-2">
+                  <Landmark className="w-5 h-5 text-emerald-500" /> Investimento BR
+                </h3>
+                <button onClick={() => setInvModal(false)} className="p-2 text-gray-400 hover:text-gray-700 transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <div className="p-6 md:p-8 space-y-4 md:space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Tipo</label>
+                  <select value={newInv.type} onChange={e => setNewInv({...newInv, type: e.target.value})} className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-emerald-300 text-gray-800 appearance-none text-sm md:text-base transition-colors">
+                    <option>CDB</option>
+                    <option>Tesouro Selic</option>
+                    <option>Poupança</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Banco / Corretora</label>
+                  <input type="text" value={newInv.bank || ''} onChange={e => setNewInv({...newInv, bank: e.target.value})} placeholder="Ex: Nubank, XP..." className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-emerald-300 text-gray-800 text-sm md:text-base transition-colors" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor Investido (R$)</label>
+                  <input type="number" value={newInv.amount || ''} onChange={e => setNewInv({...newInv, amount: e.target.value})} placeholder="0.00" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-emerald-300 text-gray-800 font-medium text-sm md:text-base transition-colors" />
+                </div>
+              </div>
+              <div className="p-6 md:p-8 pt-0 flex gap-3 md:gap-4">
+                <button onClick={() => setInvModal(false)} className="flex-1 py-3 md:py-4 text-gray-600 text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
+                <button onClick={handleAddInvestment} className="flex-1 py-3 md:py-4 bg-emerald-500 text-white text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-100 hover:-translate-y-0.5">Adicionar</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: Novo Investimento Customizado (Outros) */}
+        {customInvModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-gray-900/20 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden mx-auto transition-colors duration-300">
+              <div className="flex justify-between items-center p-6 md:p-8 border-b border-gray-50 transition-colors duration-300">
+                <h3 className="text-base md:text-lg font-medium text-gray-800 tracking-tight flex items-center gap-2">
+                  <Plus className="w-5 h-5 text-emerald-500" /> Outro Investimento
+                </h3>
+                <button onClick={() => setCustomInvModal(false)} className="p-2 text-gray-400 hover:text-gray-700 transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <div className="p-6 md:p-8 space-y-4 md:space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Nome do Investimento</label>
+                  <input type="text" value={newCustomInv.name || ''} onChange={e => setNewCustomInv({...newCustomInv, name: e.target.value})} placeholder="Ex: Ações XPTO" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-emerald-300 text-gray-800 text-sm md:text-base transition-colors" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor (R$)</label>
+                  <input type="number" value={newCustomInv.amount || ''} onChange={e => setNewCustomInv({...newCustomInv, amount: e.target.value})} placeholder="0.00" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-emerald-300 text-gray-800 font-medium text-sm md:text-base transition-colors" />
+                </div>
+              </div>
+              <div className="p-6 md:p-8 pt-0 flex gap-3 md:gap-4">
+                <button onClick={() => setCustomInvModal(false)} className="flex-1 py-3 md:py-4 text-gray-600 text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
+                <button onClick={() => {
+                  if (!newCustomInv.name || !newCustomInv.amount) return;
+                  setCustomInvestments([...customInvestments, { id: Date.now(), name: newCustomInv.name, amount: parseFloat(newCustomInv.amount) }]);
+                  setCustomInvModal(false);
+                  setNewCustomInv({ name: '', amount: '' });
+                  showToast('Investimento salvo!');
+                }} className="flex-1 py-3 md:py-4 bg-emerald-500 text-white text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-100 hover:-translate-y-0.5">Adicionar</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: Nova Meta */}
+        {goalModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-gray-900/20 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden mx-auto transition-colors duration-300">
+              <div className="flex justify-between items-center p-6 md:p-8 border-b border-gray-50 transition-colors duration-300">
+                <h3 className="text-base md:text-lg font-medium text-gray-800 tracking-tight flex items-center gap-2">
+                  <Target className="w-5 h-5 text-red-500" /> Nova Meta
+                </h3>
+                <button onClick={() => setGoalModal(false)} className="p-2 text-gray-400 hover:text-gray-700 transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <div className="p-6 md:p-8 space-y-4 md:space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Nome da Meta</label>
+                  <input type="text" value={newGoal.name || ''} onChange={e => setNewGoal({...newGoal, name: e.target.value})} placeholder="Ex: Comprar Carro" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 text-gray-800 text-sm md:text-base transition-colors" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor Alvo (R$)</label>
+                  <input type="number" value={newGoal.target || ''} onChange={e => setNewGoal({...newGoal, target: e.target.value})} placeholder="0.00" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 text-gray-800 font-medium text-sm md:text-base transition-colors" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Já Guardado (Opcional)</label>
+                  <input type="number" value={newGoal.current || ''} onChange={e => setNewGoal({...newGoal, current: e.target.value})} placeholder="0.00" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 text-gray-800 font-medium text-sm md:text-base transition-colors" />
+                </div>
+              </div>
+              <div className="p-6 md:p-8 pt-0 flex gap-3 md:gap-4">
+                <button onClick={() => setGoalModal(false)} className="flex-1 py-3 md:py-4 text-gray-600 text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
+                <button onClick={handleAddGoal} className="flex-1 py-3 md:py-4 bg-red-500 text-white text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-red-600 transition-colors shadow-lg shadow-red-100 hover:-translate-y-0.5">Criar Meta</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TOAST Notification */}
+        {toast && (
+          <div className="fixed bottom-20 md:bottom-10 right-4 md:right-10 z-50 animate-fade-in">
+            <div className="bg-gray-800 text-white px-5 md:px-6 py-3 md:py-4 rounded-2xl shadow-xl shadow-gray-800/20 flex items-center gap-3 md:gap-4">
+              <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
+              <span className="text-[10px] md:text-xs font-medium tracking-wide uppercase">{toast}</span>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </>
+  );
+}
