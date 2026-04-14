@@ -337,6 +337,43 @@ export default function App() {
   const totalInvested = totalInvestmentsBr + totalInvestmentsExt;
   const totalBalance = availableBalance + totalInvested;
 
+  // --- Crescimento Real (Comparação com o mês anterior) ---
+  const previousMonthData = useMemo(() => {
+    try {
+      const [year, month] = selectedMonth.split('-');
+      let prevYear = parseInt(year, 10);
+      let prevMonth = parseInt(month, 10) - 1;
+      if (prevMonth === 0) {
+        prevMonth = 12;
+        prevYear -= 1;
+      }
+      const prevKeyStr = `_${prevYear}-${String(prevMonth).padStart(2, '0')}`;
+      
+      const pTx = JSON.parse(window.localStorage.getItem('titovest_transactions' + prevKeyStr)) || [];
+      const pInvBr = JSON.parse(window.localStorage.getItem('titovest_inv_br' + prevKeyStr)) || [];
+      const pInvExt = JSON.parse(window.localStorage.getItem('titovest_inv_ext' + prevKeyStr)) || [];
+
+      const pIn = Array.isArray(pTx) ? pTx.filter(t => t.type === 'in').reduce((acc, t) => acc + t.amount, 0) : 0;
+      const pOut = Array.isArray(pTx) ? pTx.filter(t => t.type === 'out').reduce((acc, t) => acc + t.amount, 0) : 0;
+      const pAvail = pIn - pOut;
+      
+      const pInvestedBr = Array.isArray(pInvBr) ? pInvBr.reduce((acc, inv) => acc + inv.amount, 0) : 0;
+      const pInvestedExt = Array.isArray(pInvExt) ? pInvExt.reduce((acc, inv) => acc + inv.amount, 0) : 0;
+
+      return pAvail + pInvestedBr + pInvestedExt;
+    } catch (e) {
+      return 0;
+    }
+  }, [selectedMonth]);
+
+  let growthRate = 0;
+  let hasValidGrowth = false;
+  // Exibe crescimento apenas se houver base histórica válida e saldo atual
+  if (previousMonthData > 0 && totalBalance > 0) {
+    growthRate = ((totalBalance - previousMonthData) / previousMonthData) * 100;
+    hasValidGrowth = true;
+  }
+
   // Score de Saúde
   const savingsRate = (Number(salary) > 0) ? (((Number(salary) || 0) - committedTotal - avgVariableCosts) / Number(salary)) * 100 : 0;
   let healthScore = 0;
@@ -383,7 +420,7 @@ export default function App() {
     return data;
   }, [chartPeriod, totalBalance, finalForecast]);
 
-  // --- FUNÇÕES GLOBAIS DE AÇÃO (RECUPERADAS PARA EVITAR REFERENCE ERRORS) ---
+  // --- FUNÇÕES GLOBAIS DE AÇÃO ---
   const showToast = (message) => {
     setToast(message);
     setTimeout(() => setToast(null), 3000);
@@ -584,12 +621,15 @@ export default function App() {
             <h3 className="text-4xl md:text-5xl font-medium text-gray-800 mb-6 md:mb-8 tracking-tight">
               <AnimatedNumber value={totalBalance} prefix="R$ " decimals={2} isPrivate={isPrivate} />
             </h3>
-            <div className="flex gap-3">
-              <span className="hidden sm:inline-block text-xs font-medium text-gray-500 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100">Retorno Mensal</span>
-              <span className="text-xs font-medium text-gray-800 bg-gray-50 px-4 py-2 rounded-lg flex items-center border border-gray-100">
-                <ArrowUpRight className="w-3 h-3 mr-1 text-gray-400" /> +3.5%
-              </span>
-            </div>
+            {hasValidGrowth && (
+              <div className="flex gap-3">
+                <span className="hidden sm:inline-block text-xs font-medium text-gray-500 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100">Retorno Mensal</span>
+                <span className={`text-xs font-medium px-4 py-2 rounded-lg flex items-center border border-gray-100 ${growthRate >= 0 ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-red-600 bg-red-50 border-red-100'}`}>
+                  {growthRate >= 0 ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
+                  {growthRate > 0 ? '+' : ''}{growthRate.toFixed(1).replace('.', ',')}%
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="clean-card p-6 md:p-8 animate-fade-in delay-200 h-[250px] md:h-[300px] flex flex-col">
@@ -1206,7 +1246,7 @@ export default function App() {
         {/* Área Principal */}
         <main className="flex-1 flex flex-col h-full overflow-y-auto relative">
           
-          {/* Header Superior (Com Seletor de Mês) */}
+          {/* Header Superior */}
           <header className="bg-white/90 backdrop-blur-md sticky top-0 z-30 px-5 md:px-10 py-4 md:py-5 flex justify-between items-center border-b border-gray-100 transition-colors duration-300">
             <div className="flex items-center gap-3">
               <div className="md:hidden w-8 h-8 cursor-pointer" onClick={() => setActiveTab('home')}>
@@ -1214,23 +1254,9 @@ export default function App() {
                   <path d="M 5 20 Q 50 35 95 20 Q 75 35 60 35 L 60 80 L 70 100 L 30 100 L 40 80 L 40 35 Q 25 35 5 20 Z" fill="#dc2626" />
                 </svg>
               </div>
-              <h1 className="hidden sm:block text-lg md:text-xl font-medium text-gray-700 tracking-tight cursor-pointer transition-colors duration-300" onClick={() => setActiveTab('home')}>
+              <h1 className="text-lg md:text-xl font-medium text-gray-700 tracking-tight cursor-pointer transition-colors duration-300" onClick={() => setActiveTab('home')}>
                 Tito<span className="text-red-500">Vest</span>
               </h1>
-            </div>
-
-            {/* SELETOR DE MÊS CENTRALIZADO */}
-            <div className="flex items-center justify-center flex-1 mx-2 sm:mx-6">
-               <div className="relative flex items-center bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-xl px-3 py-1.5 transition-colors cursor-pointer">
-                  <CalendarDays className="w-4 h-4 text-gray-400 mr-2"/>
-                  <select 
-                    value={selectedMonth} 
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="bg-transparent text-xs md:text-sm font-medium text-gray-700 focus:outline-none appearance-none cursor-pointer pr-4"
-                  >
-                    {monthOptions.map(m => <option key={m.value} value={m.value} className="text-gray-900 bg-white">{m.label}</option>)}
-                  </select>
-               </div>
             </div>
 
             <div className="flex items-center gap-3 md:gap-6">
