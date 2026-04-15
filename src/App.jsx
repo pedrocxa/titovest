@@ -858,7 +858,7 @@ export default function App() {
 
         <div className="lg:col-span-5 flex flex-col gap-6 animate-fade-in delay-200">
           
-          <div className="clean-card flex flex-col flex-1 h-[420px] max-h-[420px] mb-28">
+          <div className="clean-card flex flex-col w-full h-[350px] max-h-[420px] shrink-0 mb-28">
             <div className="p-5 md:p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30 rounded-t-2xl">
               <div>
                 <h3 className="text-base font-medium text-gray-800">Custos Fixos & Assinaturas</h3>
