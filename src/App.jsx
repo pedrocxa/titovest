@@ -566,7 +566,7 @@ export default function App() {
             )}
           </div>
 
-          <div className="clean-card p-6 md:p-8 animate-fade-in delay-200 h-[250px] md:h-[300px] flex flex-col">
+          <div className="clean-card p-6 md:p-8 animate-fade-in delay-200 h- min h- flex flex-col">
             <div className="flex justify-between items-center mb-6">
                <h3 className="text-base font-medium text-gray-800 flex items-center gap-2">
                   <ShieldCheck className="w-5 h-5 text-emerald-500"/> Reserva
@@ -702,10 +702,12 @@ export default function App() {
                     const perc = isActive ? Math.min(((goal.current || 0) / (goal.target || 1)) * 100, 100) : 0;
                     return (
                       <div key={goal.id} className="min-w-full flex flex-col md:flex-row items-center gap-6 md:gap-12 px-2 md:px-10 group relative">
+                        
+                        {/* LIXEIRA CORRIGIDA AQUI */}
                         <button onClick={() => {
                           setGoals(gList.filter(g => g.id !== goal.id));
                           showToast('Meta removida!');
-                        }} className="absolute top-0 right-0 p-2 text-gray-300 hover:text-red-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        }} className={`absolute top-0 right-0 p-2 text-gray-300 hover:text-red-500 transition-opacity ${isActive ? 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100' : 'opacity-0 pointer-events-none'}`}>
                            <Trash2 className="w-4 h-4"/>
                         </button>
                         
@@ -856,7 +858,7 @@ export default function App() {
 
         <div className="lg:col-span-5 flex flex-col gap-6 animate-fade-in delay-200">
           
-          <div className="clean-card flex flex-col flex-1 h-[420px] max-h-[420px]">
+          <div className="clean-card flex flex-col flex-1 h-[420px] max-h-[420px] mb-28">
             <div className="p-5 md:p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30 rounded-t-2xl">
               <div>
                 <h3 className="text-base font-medium text-gray-800">Custos Fixos & Assinaturas</h3>
@@ -1009,12 +1011,12 @@ export default function App() {
               gList.map(goal => {
                 const perc = Math.min(((goal.current || 0) / (goal.target || 1)) * 100, 100);
                 return (
-                  <div key={goal.id} className="flex items-center gap-4 md:gap-6 p-4 border border-gray-50 bg-gray-50/30 rounded-2xl flex-col min-[400px]:flex-row text-center min-[400px]:text-left relative group">
+                  <div key={goal.id} className="flex items-center gap-4 md:gap-6 p-4 border border-gray-50 bg-gray-50/30 rounded-2xl flex-col min-[400px]:flex-row text-center min-[400px]:text-left relative group overflow-hidden w-full shrink-0">
                      {/* Botão Excluir Meta */}
                      <button onClick={() => {
                         setGoals(gList.filter(g => g.id !== goal.id));
                         showToast('Meta removida!');
-                     }} className="absolute top-2 right-2 p-2 text-gray-300 hover:text-red-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                     }} className="absolute top-2 right-2 p-2 text-gray-300 hover:text-red-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10">
                         <Trash2 className="w-4 h-4"/>
                      </button>
 
