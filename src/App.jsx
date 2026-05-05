@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Home, 
   Wallet, 
@@ -31,8 +31,6 @@ import {
   Activity,
   Briefcase,
   Landmark,
-  Moon,
-  Sun,
   CalendarDays,
   AlertTriangle
 } from 'lucide-react';
@@ -143,7 +141,15 @@ const getIcon = (name) => IconMap[name] || CreditCard;
 
 // --- Estilos Globais Premium ---
 const customStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap');
+
+  @keyframes titovest-pulse {
+    0%, 100% { transform: scale(1.00); opacity: 1; }
+    50%       { transform: scale(0.98); opacity: 0.82; }
+  }
+
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
 
   body {
     font-family: 'Outfit', sans-serif;
@@ -164,6 +170,11 @@ const customStyles = `
     to { opacity: 1; transform: translateY(0); }
   }
 
+  @keyframes sheetSlideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
   @keyframes pulseGlow {
     0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
     70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
@@ -179,15 +190,17 @@ const customStyles = `
   .delay-300 { animation-delay: 300ms; }
   
   .clean-card {
-    background: #ffffff;
-    border-radius: 1.25rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-    border: 1px solid rgba(0, 0, 0, 0.03);
-    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.11);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    font-family: 'Manrope', sans-serif;
+    transition: transform 200ms ease, border-color 200ms ease;
   }
   .clean-card:hover {
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.18);
   }
 
   ::-webkit-scrollbar { width: 5px; }
@@ -205,9 +218,10 @@ const customStyles = `
   .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
 
   /* --- DARK MODE --- */
-  .theme-dark { background-color: #0a0a0a !important; color: #e5e5e5 !important; }
-  .theme-dark .bg-white, .theme-dark .clean-card { background-color: #171717 !important; border-color: #262626 !important; }
-  .theme-dark .bg-\\[\\#f8f9fa\\] { background-color: #0a0a0a !important; }
+  .theme-dark { background-color: #000000 !important; color: #e5e5e5 !important; }
+  .theme-dark .bg-white { background-color: #171717 !important; border-color: #262626 !important; }
+  .theme-dark .clean-card { background: rgba(255, 255, 255, 0.11) !important; border-color: rgba(255, 255, 255, 0.10) !important; box-shadow: 0 4px 24px rgba(0,0,0,0.45) !important; }
+  .theme-dark .bg-\\[\\#f8f9fa\\] { background-color: #000000 !important; }
   .theme-dark .bg-gray-50 { background-color: #262626 !important; }
   .theme-dark .bg-gray-100 { background-color: #404040 !important; }
   .theme-dark .bg-gray-800 { background-color: #000000 !important; color: #f5f5f5 !important; }
@@ -217,16 +231,27 @@ const customStyles = `
   .theme-dark .text-gray-500, .theme-dark .text-gray-400 { color: #a3a3a3 !important; }
   .theme-dark .text-gray-300 { color: #737373 !important; }
   .theme-dark .border-gray-50, .theme-dark .border-gray-100, .theme-dark .border-gray-200, .theme-dark .border-white { border-color: #262626 !important; }
-  .theme-dark input, .theme-dark select { background-color: #0a0a0a !important; color: #f5f5f5 !important; border-color: #262626 !important; }
+  .theme-dark input, .theme-dark select { background-color: #000000 !important; color: #f5f5f5 !important; border-color: #262626 !important; }
   .theme-dark input::placeholder { color: #737373 !important; }
   
-  /* Exceções de Identidade Visual */
-  .theme-dark .text-red-500 { color: #ef4444 !important; }
-  .theme-dark .text-red-600 { color: #dc2626 !important; }
-  .theme-dark .bg-red-50 { background-color: rgba(239, 68, 68, 0.15) !important; }
-  .theme-dark .border-red-100 { border-color: rgba(239, 68, 68, 0.3) !important; }
-  .theme-dark .border-red-300 { border-color: rgba(239, 68, 68, 0.5) !important; }
-  .theme-dark .border-red-400 { border-color: rgba(239, 68, 68, 0.6) !important; }
+  /* Vermelho → Roxo (identidade visual unificada) */
+  .theme-dark .text-red-400,
+  .theme-dark .text-red-500  { color: #9d6fe8 !important; }
+  .theme-dark .text-red-600  { color: #8b5cf6 !important; }
+  .theme-dark .bg-red-50     { background-color: rgba(109, 74, 173, 0.14) !important; }
+  .theme-dark .bg-red-100    { background-color: rgba(109, 74, 173, 0.22) !important; }
+  .theme-dark .bg-red-500    { background-color: #6d4aad !important; }
+  .theme-dark .bg-red-600    { background-color: #5a3a90 !important; }
+  .theme-dark .border-red-100  { border-color: rgba(109, 74, 173, 0.28) !important; }
+  .theme-dark .border-red-300  { border-color: rgba(109, 74, 173, 0.45) !important; }
+  .theme-dark .border-red-400  { border-color: rgba(109, 74, 173, 0.60) !important; }
+  .theme-dark .border-l-red-500 { border-left-color: #6d4aad !important; }
+  .theme-dark .hover\:bg-red-50:hover  { background-color: rgba(109, 74, 173, 0.14) !important; }
+  .theme-dark .hover\:bg-red-100:hover { background-color: rgba(109, 74, 173, 0.22) !important; }
+  .theme-dark .hover\:bg-red-600:hover { background-color: #5a3a90 !important; }
+  .theme-dark .hover\:text-red-500:hover { color: #9d6fe8 !important; }
+  .theme-dark .shadow-red-100,
+  .theme-dark .shadow-red-500\/20 { box-shadow: 0 10px 30px rgba(109,74,173,0.25) !important; }
 
   .theme-dark .text-emerald-400 { color: #34d399 !important; }
   .theme-dark .text-emerald-500 { color: #10b981 !important; }
@@ -250,14 +275,132 @@ const customStyles = `
     background-color: rgba(10, 10, 10, 0.4) !important;
   }
   .theme-dark circle[stroke="#e5e7eb"], .theme-dark circle[stroke="#f3f4f6"] { stroke: #262626 !important; }
+
+  /* --- GLASS CARD — overrides internos escopados --- */
+  /* Superfícies internas */
+  .theme-dark .clean-card .bg-white,
+  .theme-dark .clean-card .bg-gray-50   { background-color: rgba(255,255,255,0.05) !important; }
+  .theme-dark .clean-card .bg-gray-100  { background-color: rgba(255,255,255,0.09) !important; }
+  .theme-dark .clean-card .bg-gray-50\/30,
+  .theme-dark .clean-card .bg-gray-50\/50 { background-color: rgba(255,255,255,0.03) !important; }
+
+  /* Bordas internas */
+  .theme-dark .clean-card .border-gray-50,
+  .theme-dark .clean-card .border-gray-100 { border-color: rgba(255,255,255,0.08) !important; }
+  .theme-dark .clean-card .border-gray-200  { border-color: rgba(255,255,255,0.11) !important; }
+
+  /* Hover de linhas internas (ex: transações) */
+  .theme-dark .clean-card .hover\:bg-gray-50\/50:hover { background-color: rgba(255,255,255,0.05) !important; }
+  .theme-dark .clean-card .hover\:bg-gray-50:hover    { background-color: rgba(255,255,255,0.05) !important; }
+  .theme-dark .clean-card .hover\:bg-gray-100:hover   { background-color: rgba(255,255,255,0.09) !important; }
+
+  /* Progress rings — SVG rendering quality */
+  .clean-card svg {
+    overflow: visible;
+    shape-rendering: geometricPrecision;
+  }
+  .clean-card circle {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    paint-order: stroke fill;
+  }
+
+  /* Progress rings — track fino + cor roxa no fill */
+  .theme-dark .clean-card circle[stroke="#e5e7eb"],
+  .theme-dark .clean-card circle[stroke="#f3f4f6"] { stroke: rgba(255,255,255,0.12) !important; stroke-width: 5 !important; }
+  .theme-dark .clean-card circle[stroke="#dc2626"],
+  .theme-dark .clean-card circle[stroke="#ef4444"],
+  .theme-dark .clean-card circle[stroke="#34d399"] { stroke: #7c3aed !important; stroke-width: 5 !important; stroke-linecap: round !important; }
+
+  /* Hierarquia tipográfica dentro dos cards */
+  .theme-dark .clean-card .text-gray-900,
+  .theme-dark .clean-card .text-gray-800 { color: #f0f0f0 !important; font-weight: 500; }
+  .theme-dark .clean-card .text-gray-700 { color: #d0d0d0 !important; }
+  .theme-dark .clean-card .text-gray-500 { color: #909090 !important; }
+  .theme-dark .clean-card .text-gray-400 { color: #767676 !important; }
+  .theme-dark .clean-card .text-gray-300 { color: #555555 !important; }
 `;
+
+function BottomSheet({ onClose, children }) {
+  const [dragY, setDragY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartY = useRef(null);
+  const handleRef = useRef(null);
+
+  const onPointerDown = (e) => {
+    e.preventDefault();
+    dragStartY.current = e.clientY;
+    setIsDragging(true);
+    handleRef.current?.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e) => {
+    if (dragStartY.current === null) return;
+    const delta = e.clientY - dragStartY.current;
+    if (delta > 0) setDragY(delta);
+  };
+  const onPointerUp = () => {
+    if (dragY > 80) { onClose(); return; }
+    setDragY(0);
+    setIsDragging(false);
+    dragStartY.current = null;
+  };
+
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'flex-end', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: '100%',
+          maxHeight: '85vh',
+          background: 'rgba(16,16,16,0.98)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          borderTopLeftRadius: '22px',
+          borderTopRightRadius: '22px',
+          border: '1px solid rgba(255,255,255,0.09)',
+          borderBottom: 'none',
+          transform: `translateY(${dragY}px)`,
+          transition: isDragging ? 'none' : 'transform 0.35s cubic-bezier(0.32,0.72,0,1)',
+          animation: 'sheetSlideUp 0.35s cubic-bezier(0.32,0.72,0,1)',
+          overflowY: 'auto',
+          overscrollBehavior: 'contain',
+          fontFamily: "'Manrope', sans-serif",
+        }}
+      >
+        <div
+          ref={handleRef}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', cursor: 'grab', touchAction: 'none', userSelect: 'none' }}
+        >
+          <div style={{ width: '36px', height: '4px', background: 'rgba(255,255,255,0.2)', borderRadius: '2px' }} />
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   // --- Estados Base ---
   const [userName, setUserName] = useLocalStorage('titovest_user', '');
   const [welcomeName, setWelcomeName] = useState('');
-  const [isDarkMode, setIsDarkMode] = useLocalStorage('titovest_theme', false); 
-  
+  const [splashVisible, setSplashVisible] = useState(true);
+  const [splashFading, setSplashFading] = useState(false);
+
+  useEffect(() => {
+    const fadeTimer = setTimeout(() => setSplashFading(true), 1500);
+    const hideTimer = setTimeout(() => {
+      setSplashVisible(false);
+      if (!userName) setUserName('Usuário');
+    }, 1900);
+    return () => { clearTimeout(fadeTimer); clearTimeout(hideTimer); };
+  }, []);
+
   // --- Navegação e Filtros ---
   const [activeTab, setActiveTab] = useState('home'); 
   const [historyFilter, setHistoryFilter] = useState('all'); 
@@ -424,44 +567,47 @@ export default function App() {
   const handleResetData = () => { if(window.confirm("Apagar todos os dados?")) { localStorage.clear(); window.location.reload(); } };
   const openHistory = (filterType) => { setHistoryFilter(filterType); setActiveTab('history'); };
 
-  // --- TELA DE BOAS VINDAS ---
-  if (!userName) {
+  // --- TELA SPLASH ---
+  if (splashVisible) {
     return (
-      <div className={`flex h-screen w-full items-center justify-center overflow-hidden relative px-4 ${isDarkMode ? 'theme-dark bg-[#0a0a0a]' : 'bg-gradient-to-br from-gray-50 to-white'}`}>
+      <div
+        style={{
+          background: '#000',
+          display: 'flex',
+          height: '100dvh',
+          width: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          opacity: splashFading ? 0 : 1,
+          transition: 'opacity 0.4s ease',
+        }}
+      >
         <style>{customStyles}</style>
-        <div className="absolute top-6 right-6 z-50">
-           <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-3 text-gray-400 hover:text-gray-800 bg-white/50 border border-gray-100 rounded-full transition-colors relative backdrop-blur-md shadow-sm">
-            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
-        </div>
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-red-500/[0.04] rounded-full blur-[120px] pointer-events-none"></div>
-        <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-red-500/[0.05] rounded-full blur-[150px] pointer-events-none"></div>
-
-        <div className="z-10 p-8 md:p-12 flex flex-col items-center text-center max-w-[420px] w-full bg-white/70 backdrop-blur-xl rounded-[24px] border border-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] animate-slide-up-fade">
-           <div className="w-12 h-12 mb-5">
-              <svg viewBox="0 0 100 100" className="w-full h-full">
-                <path d="M 5 20 Q 50 35 95 20 Q 75 35 60 35 L 60 80 L 70 100 L 30 100 L 40 80 L 40 35 Q 25 35 5 20 Z" fill="#dc2626" />
-              </svg>
-           </div>
-           
-           <h1 className="text-3xl font-medium text-gray-900 mb-2 tracking-tight">Tito<span className="text-red-600">Vest</span></h1>
-           <p className="text-gray-500 text-sm mb-10">O seu controle financeiro começa aqui.</p>
-           
-           <input 
-             type="text" 
-             placeholder="Como podemos te chamar?" 
-             value={welcomeName} 
-             onChange={e=>setWelcomeName(e.target.value)} 
-             onKeyDown={(e) => { if(e.key === 'Enter' && welcomeName.trim()) setUserName(welcomeName.trim()) }}
-             className="w-full px-5 py-4 bg-white/60 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] focus:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300 text-gray-800 font-medium mb-6 text-center placeholder:text-gray-400" 
-           />
-           
-           <button 
-             onClick={() => {if(welcomeName.trim()) setUserName(welcomeName.trim())}} 
-             className="w-full py-4 bg-red-500 text-white font-medium uppercase tracking-widest rounded-2xl hover:bg-red-600 hover:scale-[1.03] transition-all duration-300 shadow-xl shadow-red-500/20 flex items-center justify-center gap-2"
-           >
-             Entrar <ArrowRight className="w-4 h-4"/>
-           </button>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '18px',
+            animation: 'titovest-pulse 2.8s ease-in-out infinite',
+          }}
+        >
+          <h1
+            style={{
+              fontFamily: "'Manrope', sans-serif",
+              fontWeight: 500,
+              fontSize: 'clamp(2.2rem, 7vw, 3.8rem)',
+              letterSpacing: '-0.03em',
+              lineHeight: 1,
+              margin: 0,
+            }}
+          >
+            <span style={{ color: '#ffffff' }}>Tito</span>
+            <span style={{ color: '#6d4aad' }}>Vest</span>
+          </h1>
+          <div style={{ height: '24px' }} />
         </div>
       </div>
     );
@@ -481,7 +627,7 @@ export default function App() {
 
     return (
       <div className="animate-fade-in flex flex-col h-full">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-4">
             <button onClick={() => setActiveTab('wallet')} className="p-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors shadow-sm">
               <ChevronLeft className="w-5 h-5 text-gray-600" />
@@ -546,9 +692,9 @@ export default function App() {
          <h2 className="text-2xl font-medium text-gray-800">Visão Geral</h2>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-4">
         
-        <div className="lg:col-span-4 flex flex-col gap-6 md:gap-10">
+        <div className="lg:col-span-4 flex flex-col gap-3 md:gap-4">
           <div className="clean-card p-6 md:p-10 animate-fade-in flex flex-col items-center text-center relative overflow-hidden h-[250px] md:h-[300px] justify-center">
             <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-full blur-[50px] opacity-50 -z-10"></div>
             <p className="text-sm text-gray-400 font-normal mb-2">Saldo Atual da Carteira</p>
@@ -681,7 +827,7 @@ export default function App() {
         <h3 className="text-base font-medium text-gray-700 mb-4 md:mb-6">Andamento das Metas</h3>
         
         {gList.length === 0 ? (
-           <div className="clean-card flex flex-col items-center justify-center py-12 w-full border-dashed border-2 border-gray-200 bg-gray-50/30">
+           <div className="clean-card flex flex-col items-center justify-center py-12 w-full border-dashed border-2 border-gray-200">
               <Target className="w-12 h-12 text-gray-300 mb-4" />
               <p className="text-gray-500 mb-6 text-sm text-center px-4">Nenhuma meta cadastrada para este mês.</p>
               <button onClick={() => setActiveTab('profile')} className="px-6 py-3 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-black transition-colors shadow-md">Ir para perfil</button>
@@ -739,8 +885,8 @@ export default function App() {
     <>
       <h2 className="text-2xl font-medium text-gray-800 animate-fade-in mb-4 md:mb-6">Gestão da Carteira</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8 animate-fade-in">
-        <div onClick={() => openHistory('in')} className="clean-card p-5 md:p-6 flex items-center gap-4 md:gap-5 border-l-4 border-l-gray-800 cursor-pointer hover:-translate-y-1 transition-all group">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 animate-fade-in">
+        <div onClick={() => openHistory('in')} className="clean-card p-5 md:p-6 flex items-center gap-4 md:gap-5 border-l-4 border-l-gray-800 cursor-pointer transition-transform duration-200 hover:-translate-y-0.5 group">
           <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gray-50 text-gray-600 flex items-center justify-center shrink-0 group-hover:bg-gray-100 transition-colors">
             <ArrowDownRight className="w-5 h-5 md:w-6 md:h-6" />
           </div>
@@ -751,7 +897,7 @@ export default function App() {
             </p>
           </div>
         </div>
-        <div onClick={() => openHistory('out')} className="clean-card p-5 md:p-6 flex items-center gap-4 md:gap-5 border-l-4 border-l-red-500 cursor-pointer hover:-translate-y-1 transition-all group">
+        <div onClick={() => openHistory('out')} className="clean-card p-5 md:p-6 flex items-center gap-4 md:gap-5 border-l-4 border-l-red-500 cursor-pointer transition-transform duration-200 hover:-translate-y-0.5 group">
           <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center shrink-0 group-hover:bg-red-100 transition-colors">
             <ArrowUpRight className="w-5 h-5 md:w-6 md:h-6" />
           </div>
@@ -763,7 +909,7 @@ export default function App() {
           </div>
         </div>
         
-        <div className="clean-card p-5 md:p-6 flex items-center gap-4 md:gap-5 border-l-4 border-l-emerald-500 shadow-md transition-colors duration-300">
+        <div className="clean-card p-5 md:p-6 flex items-center gap-4 md:gap-5 border-l-4 border-l-emerald-500">
           <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
             <Wallet className="w-5 h-5 md:w-6 md:h-6" />
           </div>
@@ -780,8 +926,8 @@ export default function App() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10">
-        <div className="lg:col-span-7 flex flex-col gap-6 animate-fade-in delay-100">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-4">
+        <div className="lg:col-span-7 flex flex-col gap-3 animate-fade-in delay-100">
           
           <div className="clean-card p-6 md:p-8 flex flex-col relative overflow-hidden h-[160px] justify-center">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-gray-50 rounded-full blur-[40px] opacity-50 pointer-events-none"></div>
@@ -806,7 +952,7 @@ export default function App() {
             <p className="text-[9px] md:text-[10px] text-gray-400 mt-3">Pressione <strong className="text-gray-500">ENTER</strong> para confirmar e atualizar.</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="clean-card p-5 md:p-6">
               <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-2 md:mb-3">Após Gastos Fixos</p>
               <p className="text-xl md:text-2xl font-medium text-gray-700">
@@ -837,7 +983,7 @@ export default function App() {
                  <p className="text-xs text-gray-400 py-4 text-center">Nenhum investimento externo/personalizado.</p>
               ) : (
                 invExtList.map(inv => (
-                  <div key={inv.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors group">
+                  <div key={inv.id} className="flex justify-between items-center p-4 rounded-2xl border border-[#1f1f1f] bg-white/[0.03] transition-transform duration-200 hover:-translate-y-0.5 group">
                     <div className="flex flex-col">
                       <span className="text-sm font-semibold text-gray-800">{inv.type}</span>
                       <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest">{inv.name}</span>
@@ -856,7 +1002,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="lg:col-span-5 flex flex-col gap-6 animate-fade-in delay-200">
+        <div className="lg:col-span-5 flex flex-col gap-3 animate-fade-in delay-200">
           
           <div className="clean-card flex flex-col w-full h-[350px] max-h-[420px] shrink-0 mb-28">
             <div className="p-5 md:p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30 rounded-t-2xl">
@@ -907,7 +1053,7 @@ export default function App() {
     <>
       <h2 className="text-2xl font-medium text-gray-800 animate-fade-in mb-4 md:mb-6">Seu Perfil Financeiro</h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-10 animate-fade-in">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-4 animate-fade-in">
         <div className="clean-card p-5 md:p-6 flex flex-col justify-center">
           <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest mb-1 md:mb-2">Salário Base</p>
           <p className="text-xl md:text-2xl font-medium text-gray-800"><AnimatedNumber value={salary} prefix="R$ " isPrivate={isPrivate}/></p>
@@ -927,7 +1073,7 @@ export default function App() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10 mb-8 md:mb-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-4 mb-4">
         
         <div className="lg:col-span-8 flex flex-col">
           <div className="clean-card p-6 md:p-10 animate-fade-in delay-100 flex-1 flex flex-col justify-center">
@@ -942,13 +1088,13 @@ export default function App() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                 <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                 <div className="p-4 rounded-2xl border border-[#1f1f1f] bg-white/[0.03] transition-transform duration-200 hover:-translate-y-0.5">
                     <p className="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest mb-1">Econ. Mensal Estimada</p>
                     <p className={`text-xl md:text-2xl font-medium ${forecastColor}`}>
                       <AnimatedNumber value={finalForecast} prefix="R$ " decimals={2} isPrivate={isPrivate} />
                     </p>
                  </div>
-                 <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                 <div className="p-4 rounded-2xl border border-[#1f1f1f] bg-white/[0.03] transition-transform duration-200 hover:-translate-y-0.5">
                     <p className="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest mb-1">Renda Poupada</p>
                     <p className="text-xl md:text-2xl font-medium text-gray-800">
                       {isPrivate ? '••%' : `${Math.max(0, Math.round(savingsRate))}%`}
@@ -1011,7 +1157,7 @@ export default function App() {
               gList.map(goal => {
                 const perc = Math.min(((goal.current || 0) / (goal.target || 1)) * 100, 100);
                 return (
-                  <div key={goal.id} className="flex items-center gap-4 md:gap-6 p-4 border border-gray-50 bg-gray-50/30 rounded-2xl flex-col min-[400px]:flex-row text-center min-[400px]:text-left relative group overflow-hidden w-full shrink-0">
+                  <div key={goal.id} className="flex items-center gap-4 md:gap-6 p-4 rounded-2xl border border-[#1f1f1f] bg-white/[0.03] flex-col min-[400px]:flex-row text-center min-[400px]:text-left relative group overflow-hidden w-full shrink-0 transition-transform duration-200 hover:-translate-y-0.5">
                      {/* Botão Excluir Meta */}
                      <button onClick={() => {
                         setGoals(gList.filter(g => g.id !== goal.id));
@@ -1058,371 +1204,320 @@ export default function App() {
       <style>{customStyles}</style>
       
       {/* Wrapper Principal Sensível ao Tema */}
-      <div className={`flex h-screen w-full overflow-hidden relative transition-colors duration-300 ${isDarkMode ? 'theme-dark bg-[#0a0a0a]' : 'bg-[#f8f9fa]'}`}>
-        
-        {/* Sidebar Esquerda (Desktop) */}
-        <aside className="hidden md:flex w-20 bg-white border-r border-gray-100 flex-col items-center py-8 z-20 flex-shrink-0 transition-colors duration-300">
-          <div onClick={() => setActiveTab('home')} className="mb-12 group cursor-pointer" title="TitoVest">
-            <svg viewBox="0 0 100 100" className="w-10 h-10 drop-shadow-sm group-hover:scale-105 transition-transform">
-              <path d="M 5 20 Q 50 35 95 20 Q 75 35 60 35 L 60 80 L 70 100 L 30 100 L 40 80 L 40 35 Q 25 35 5 20 Z" fill="#dc2626" />
-            </svg>
-          </div>
+      <div className="flex h-screen w-full overflow-hidden relative theme-dark" style={{backgroundColor: '#000000'}}>
 
-          <nav className="flex flex-col gap-8 flex-1 w-full mt-2">
-            {[
-              { id: 'home', icon: Home, title: "Início" },
-              { id: 'wallet', icon: Wallet, title: "Carteira" },
-              { id: 'profile', icon: User, title: "Perfil" },
-              { id: 'history', icon: Clock, title: "Histórico" }
-            ].map((item) => (
-              <div key={item.id} onClick={() => {
-                if(item.id === 'history') setHistoryFilter('all');
-                setActiveTab(item.id);
-              }} title={item.title} className="relative group flex justify-center cursor-pointer">
-                {activeTab === item.id && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-red-500 rounded-r-md transition-all"></div>}
-                <div className={`p-2 rounded-lg transition-colors ${activeTab === item.id ? 'text-red-500 bg-red-50' : 'text-gray-300 hover:text-red-500 hover:bg-red-50'}`}>
-                  <item.icon className="w-6 h-6 stroke-[1.5]" />
-                </div>
-              </div>
-            ))}
-          </nav>
-
-          <div className="mt-auto">
-             <div onClick={() => setSettingsModal(true)} className="p-2 text-gray-300 hover:text-gray-600 transition-colors cursor-pointer" title="Definições">
-              <Settings className="w-6 h-6" />
-            </div>
-          </div>
-        </aside>
 
         {/* Área Principal */}
         <main className="flex-1 flex flex-col h-full overflow-y-auto relative">
           
-          {/* Header Superior */}
-          <header className="bg-white/90 backdrop-blur-md sticky top-0 z-30 px-5 md:px-10 py-4 md:py-5 flex justify-between items-center border-b border-gray-100 transition-colors duration-300">
-            <div className="flex items-center gap-3">
-              <div className="md:hidden w-8 h-8 cursor-pointer" onClick={() => setActiveTab('home')}>
-                <svg viewBox="0 0 100 100" className="w-full h-full">
-                  <path d="M 5 20 Q 50 35 95 20 Q 75 35 60 35 L 60 80 L 70 100 L 30 100 L 40 80 L 40 35 Q 25 35 5 20 Z" fill="#dc2626" />
-                </svg>
-              </div>
-              <h1 className="text-lg md:text-xl font-medium text-gray-700 tracking-tight cursor-pointer transition-colors duration-300" onClick={() => setActiveTab('home')}>
-                Tito<span className="text-red-500">Vest</span>
+          {/* Header + Nav Superior */}
+          <div className="sticky top-0 z-30">
+            <header
+              style={{ background: '#000', borderBottom: '1px solid #1a1a1a' }}
+              className="px-5 md:px-8 py-4 flex justify-between items-center"
+            >
+              {/* Título */}
+              <h1
+                onClick={() => setActiveTab('home')}
+                style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', letterSpacing: '-0.02em', lineHeight: 1, cursor: 'pointer' }}
+              >
+                <span style={{ color: '#ffffff' }}>Tito</span>
+                <span style={{ color: '#6d4aad' }}>Vest</span>
               </h1>
-            </div>
 
-            <div className="flex items-center gap-3 md:gap-6">
-              <div className="flex gap-2 md:gap-4 items-center">
-                <button onClick={() => setIsPrivate(!isPrivate)} className="p-2 text-gray-400 hover:text-gray-800 bg-gray-50/50 rounded-full transition-colors">
-                  {isPrivate ? <EyeOff className="w-4 h-4 md:w-5 md:h-5" /> : <Eye className="w-4 h-4 md:w-5 md:h-5" />}
+              {/* Ações direita */}
+              <div className="flex items-center gap-3">
+                {/* Privacidade */}
+                <button
+                  onClick={() => setIsPrivate(!isPrivate)}
+                  style={{ color: '#888', transition: 'color 0.18s ease' }}
+                  className="p-2 rounded-full hover:text-white"
+                >
+                  {isPrivate ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
-                
-                {/* BOTÃO: DARK / LIGHT MODE */}
-                <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 text-gray-400 hover:text-gray-800 bg-gray-50/50 rounded-full transition-colors relative">
-                  {isDarkMode ? <Sun className="w-4 h-4 md:w-5 md:h-5" /> : <Moon className="w-4 h-4 md:w-5 md:h-5" />}
+
+                {/* Menu hambúrguer → abre perfil */}
+                <button
+                  onClick={() => setActiveTab('profile')}
+                  style={{ color: '#888', transition: 'color 0.18s ease' }}
+                  className="p-2 rounded-full hover:text-white flex flex-col gap-[5px] items-center justify-center"
+                  aria-label="Menu"
+                >
+                  <span style={{ display: 'block', width: '20px', height: '1.5px', background: 'currentColor', borderRadius: '2px' }} />
+                  <span style={{ display: 'block', width: '20px', height: '1.5px', background: 'currentColor', borderRadius: '2px' }} />
+                  <span style={{ display: 'block', width: '20px', height: '1.5px', background: 'currentColor', borderRadius: '2px' }} />
                 </button>
               </div>
+            </header>
 
-              <div className="hidden sm:block w-px h-6 bg-gray-200 mx-1 md:mx-2 transition-colors duration-300"></div>
-
-              <div onClick={() => setActiveTab('profile')} className="flex items-center gap-2 md:gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-gray-700 transition-colors duration-300">{userName}</p>
-                </div>
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-500 transition-colors hover:bg-gray-100 uppercase font-medium text-xs md:text-base">
-                  {userName ? userName.charAt(0) : <User className="w-4 h-4" />}
-                </div>
+            {/* Nav Scroll Horizontal */}
+            <nav style={{ background: '#000' }} className="px-4 py-2.5">
+              <div
+                className="flex gap-2.5 overflow-x-auto scrollbar-none"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+              >
+                {[
+                  { id: 'home',    icon: Home,   label: 'Início' },
+                  { id: 'wallet',  icon: Wallet, label: 'Carteira' },
+                  { id: 'profile', icon: User,   label: 'Perfil' },
+                  { id: 'history', icon: Clock,  label: 'Histórico' },
+                ].map((item, idx, arr) => {
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={(e) => {
+                        if (item.id === 'history') setHistoryFilter('all');
+                        setActiveTab(item.id);
+                        if (idx > 0 && idx < arr.length - 1) {
+                          e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                        }
+                      }}
+                      style={{
+                        background: isActive ? 'rgba(61, 34, 112, 0.88)' : 'transparent',
+                        border: isActive ? '1px solid rgba(109, 74, 173, 0.6)' : '1px solid #2a2a2a',
+                        color: isActive ? '#ffffff' : '#606060',
+                        transition: 'background 0.22s ease, border-color 0.22s ease, color 0.22s ease',
+                        flexShrink: 0,
+                      }}
+                      className="flex items-center gap-2 px-5 py-1.5 rounded-full whitespace-nowrap text-sm font-medium"
+                    >
+                      <item.icon
+                        className="w-4 h-4"
+                        style={{ strokeWidth: isActive ? 2 : 1.5 }}
+                      />
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
               </div>
-            </div>
-          </header>
+            </nav>
+          </div>
 
-          {/* Padding bottom extra no mobile por causa da nav bar */}
-          <div className="p-4 md:p-10 pb-28 md:pb-12 max-w-7xl mx-auto w-full flex-1 flex flex-col">
+          <div className="p-3 md:p-5 pb-8 max-w-7xl mx-auto w-full flex-1 flex flex-col">
             {renderContent()}
           </div>
         </main>
 
-        {/* Navigation Bottom Bar (Mobile) */}
-        {userName && (
-          <nav className="md:hidden fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-lg border-t border-gray-100 z-40 flex justify-around items-center px-2 py-2 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.03)] transition-colors duration-300">
-            {[
-              { id: 'home', icon: Home, label: 'Início' },
-              { id: 'wallet', icon: Wallet, label: 'Carteira' },
-              { id: 'profile', icon: User, label: 'Perfil' },
-              { id: 'history', icon: Clock, label: 'Histórico' }
-            ].map((item) => (
-              <div key={item.id} onClick={() => {
-                if(item.id === 'history') setHistoryFilter('all'); 
-                setActiveTab(item.id);
-              }} className="relative flex flex-col items-center justify-center p-2 w-16 h-12">
-                <item.icon className={`w-5 h-5 mb-1 transition-colors ${(activeTab === item.id || (activeTab === 'history' && item.id === 'history')) ? 'text-red-500 stroke-[2]' : 'text-gray-400 stroke-[1.5]'}`} />
-                <span className={`text-[9px] transition-colors ${(activeTab === item.id || (activeTab === 'history' && item.id === 'history')) ? 'text-red-500 font-medium' : 'text-gray-400'}`}>{item.label}</span>
-              </div>
-            ))}
-          </nav>
-        )}
 
-        {/* MODAL: Definições e Reset */}
+        {/* BOTTOM SHEET: Definições e Reset */}
         {settingsModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-gray-900/20 backdrop-blur-sm animate-fade-in">
-             <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden mx-auto transition-colors duration-300">
-                <div className="flex justify-between items-center p-6 md:p-8 border-b border-gray-50 transition-colors duration-300">
-                  <h3 className="text-base md:text-lg font-medium text-gray-800 tracking-tight flex items-center gap-2">
-                    <Settings className="w-5 h-5 text-gray-500" /> Definições
-                  </h3>
-                  <button onClick={() => setSettingsModal(false)} className="p-2 text-gray-400 hover:text-gray-700 transition-colors"><X className="w-5 h-5" /></button>
+          <BottomSheet onClose={() => setSettingsModal(false)}>
+            <div className="px-6 pb-8 pt-3 space-y-5">
+              <h3 className="text-base font-medium text-gray-800 flex items-center gap-2">
+                <Settings className="w-5 h-5 text-gray-500" /> Definições
+              </h3>
+              <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-semibold text-red-600 mb-1">Zona de Perigo</h4>
+                  <p className="text-xs text-red-500/80 leading-relaxed">Apagar os dados irá remover permanentemente todo o teu histórico, metas e informações de todos os meses.</p>
                 </div>
-                <div className="p-6 md:p-8 space-y-4">
-                   <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-start gap-3">
-                      <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5"/>
-                      <div>
-                        <h4 className="text-sm font-semibold text-red-600 mb-1">Zona de Perigo</h4>
-                        <p className="text-xs text-red-500/80 leading-relaxed">
-                          Apagar os dados irá remover permanentemente todo o teu histórico, metas e informações de todos os meses.
-                        </p>
-                      </div>
-                   </div>
-                </div>
-                <div className="p-6 md:p-8 pt-0 flex gap-3 md:gap-4 flex-col">
-                   <button onClick={handleResetData} className="w-full py-3 md:py-4 bg-red-500 text-white text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-red-600 transition-colors shadow-lg shadow-red-100 hover:-translate-y-0.5">Apagar todos os dados</button>
-                   <button onClick={() => setSettingsModal(false)} className="w-full py-3 md:py-4 text-gray-600 bg-gray-50 text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-100 transition-colors">Cancelar</button>
-                </div>
-             </div>
-          </div>
+              </div>
+              <div className="flex flex-col gap-3">
+                <button onClick={handleResetData} className="w-full py-3 bg-red-500 text-white text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-red-600 transition-colors">Apagar todos os dados</button>
+                <button onClick={() => setSettingsModal(false)} className="w-full py-3 text-gray-600 bg-gray-50 text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-100 transition-colors">Cancelar</button>
+              </div>
+            </div>
+          </BottomSheet>
         )}
 
-        {/* MODAL: Confirmação de Salário */}
+        {/* BOTTOM SHEET: Confirmação de Salário */}
         {salaryConfirmModal !== null && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-gray-900/20 backdrop-blur-sm animate-fade-in">
-             <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden mx-auto transition-colors duration-300">
-                <div className="p-6 md:p-8 space-y-4">
-                   <h3 className="text-lg font-medium text-gray-800">Adicionar salário como transação?</h3>
-                   <p className="text-sm text-gray-500 leading-relaxed">
-                     Você gostaria de adicionar esse valor como uma entrada nas transações recentes? Isso ajuda a manter seu dashboard atualizado automaticamente.
-                   </p>
-                </div>
-                <div className="p-6 md:p-8 pt-0 flex gap-3 md:gap-4 flex-col">
-                   <button onClick={() => {
-                      setSalary(salaryConfirmModal);
-                      const nTx = {
-                        id: Date.now(),
-                        name: 'Salário Mensal',
-                        status: 'Concluído',
-                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                        amount: salaryConfirmModal,
-                        type: 'in'
-                      };
-                      setTransactions([nTx, ...tList]);
-                      setSalaryConfirmModal(null);
-                      showToast('Salário e transação adicionados!');
-                   }} className="w-full py-3 md:py-4 bg-emerald-500 text-white text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-100 hover:-translate-y-0.5">Sim, adicionar</button>
-                   
-                   <button onClick={() => {
-                      setSalary(salaryConfirmModal);
-                      setSalaryConfirmModal(null);
-                      showToast('Salário atualizado!');
-                   }} className="w-full py-3 md:py-4 text-gray-600 bg-gray-100 text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-200 transition-colors">Não</button>
-                </div>
-             </div>
-          </div>
+          <BottomSheet onClose={() => setSalaryConfirmModal(null)}>
+            <div className="px-6 pb-8 pt-3 space-y-5">
+              <div className="space-y-2">
+                <h3 className="text-base font-medium text-gray-800">Adicionar salário como transação?</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">Você gostaria de adicionar esse valor como uma entrada nas transações recentes? Isso ajuda a manter seu dashboard atualizado automaticamente.</p>
+              </div>
+              <div className="flex flex-col gap-3">
+                <button onClick={() => {
+                  setSalary(salaryConfirmModal);
+                  const nTx = { id: Date.now(), name: 'Salário Mensal', status: 'Concluído', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), amount: salaryConfirmModal, type: 'in' };
+                  setTransactions([nTx, ...tList]);
+                  setSalaryConfirmModal(null);
+                  showToast('Salário e transação adicionados!');
+                }} className="w-full py-3 text-white text-xs font-medium uppercase tracking-widest rounded-2xl transition-colors" style={{ background: '#6d4aad' }}>Sim, adicionar</button>
+                <button onClick={() => { setSalary(salaryConfirmModal); setSalaryConfirmModal(null); showToast('Salário atualizado!'); }} className="w-full py-3 text-gray-600 bg-gray-100 text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-200 transition-colors">Não</button>
+              </div>
+            </div>
+          </BottomSheet>
         )}
 
         {/* MODAL: Nova Transação */}
+        {/* BOTTOM SHEET: Nova Transação */}
         {txModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-gray-900/20 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden mx-auto transition-colors duration-300">
-              <div className="flex justify-between items-center p-6 md:p-8 border-b border-gray-50 transition-colors duration-300">
-                <h3 className="text-base md:text-lg font-medium text-gray-800 tracking-tight flex items-center gap-2">
-                  {txModal === 'in' ? <ArrowDownRight className="w-5 h-5 text-gray-600" /> : <ArrowUpRight className="w-5 h-5 text-red-500" />}
-                  Registar {txModal === 'in' ? 'Entrada' : 'Saída'}
-                </h3>
-                <button onClick={() => setTxModal(null)} className="p-2 text-gray-400 hover:text-gray-700 transition-colors"><X className="w-5 h-5" /></button>
-              </div>
-              <div className="p-6 md:p-8 space-y-4 md:space-y-6">
+          <BottomSheet onClose={() => setTxModal(null)}>
+            <div className="px-6 pb-8 pt-3 space-y-5">
+              <h3 className="text-base font-medium text-gray-800 flex items-center gap-2">
+                {txModal === 'in' ? <ArrowDownRight className="w-5 h-5 text-gray-500" /> : <ArrowUpRight className="w-5 h-5 text-red-500" />}
+                Registar {txModal === 'in' ? 'Entrada' : 'Saída'}
+              </h3>
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor (R$)</label>
-                  <input type="number" value={newTx.amount || ''} onChange={e => setNewTx({...newTx, amount: e.target.value})} placeholder="0.00" className="w-full px-4 md:px-5 py-3 md:py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 focus:bg-transparent transition-colors text-gray-800 font-medium text-sm md:text-base" />
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor (R$)</label>
+                  <input type="number" value={newTx.amount || ''} onChange={e => setNewTx({...newTx, amount: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 focus:bg-transparent transition-colors text-gray-800 font-medium text-sm" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Descrição</label>
-                  <input type="text" value={newTx.desc || ''} onChange={e => setNewTx({...newTx, desc: e.target.value})} placeholder="Ex: Salário, Lanche..." className="w-full px-4 md:px-5 py-3 md:py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 focus:bg-transparent transition-colors text-gray-800 text-sm md:text-base" />
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Descrição</label>
+                  <input type="text" value={newTx.desc || ''} onChange={e => setNewTx({...newTx, desc: e.target.value})} placeholder="Ex: Salário, Lanche..." className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 focus:bg-transparent transition-colors text-gray-800 text-sm" />
                 </div>
               </div>
-              <div className="p-6 md:p-8 pt-0 flex gap-3 md:gap-4">
-                <button onClick={() => setTxModal(null)} className="flex-1 py-3 md:py-4 text-gray-600 text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
-                <button onClick={handleAddTx} className={`flex-1 py-3 md:py-4 text-white text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl transition-all shadow-lg hover:-translate-y-0.5 ${txModal === 'in' ? 'bg-gray-800 shadow-gray-200' : 'bg-red-500 shadow-red-100'}`}>Salvar</button>
+              <div className="flex gap-3">
+                <button onClick={() => setTxModal(null)} className="flex-1 py-3 text-gray-600 text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
+                <button onClick={handleAddTx} className={`flex-1 py-3 text-white text-xs font-medium uppercase tracking-widest rounded-2xl transition-all ${txModal === 'in' ? 'bg-gray-800' : 'bg-red-500'}`}>Salvar</button>
               </div>
             </div>
-          </div>
+          </BottomSheet>
         )}
 
-        {/* MODAL: Novo Gasto Fixo */}
+        {/* BOTTOM SHEET: Novo Gasto Fixo */}
         {fixedCostModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-gray-900/20 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden mx-auto transition-colors duration-300">
-              <div className="flex justify-between items-center p-6 md:p-8 border-b border-gray-50 transition-colors duration-300">
-                <h3 className="text-base md:text-lg font-medium text-gray-800 tracking-tight flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-gray-600" /> Novo Gasto Fixo
-                </h3>
-                <button onClick={() => setFixedCostModal(false)} className="p-2 text-gray-400 hover:text-gray-700 transition-colors"><X className="w-5 h-5" /></button>
-              </div>
-              <div className="p-6 md:p-8 space-y-4 md:space-y-6">
+          <BottomSheet onClose={() => setFixedCostModal(false)}>
+            <div className="px-6 pb-8 pt-3 space-y-5">
+              <h3 className="text-base font-medium text-gray-800 flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-gray-500" /> Novo Gasto Fixo
+              </h3>
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Nome da Conta</label>
-                  <input type="text" value={newFixedCost.name || ''} onChange={e => setNewFixedCost({...newFixedCost, name: e.target.value})} placeholder="Ex: Academia" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 text-gray-800 text-sm md:text-base transition-colors" />
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Nome da Conta</label>
+                  <input type="text" value={newFixedCost.name || ''} onChange={e => setNewFixedCost({...newFixedCost, name: e.target.value})} placeholder="Ex: Academia" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 text-gray-800 text-sm transition-colors" />
                 </div>
-                <div className="flex gap-3 md:gap-4">
+                <div className="flex gap-3">
                   <div className="space-y-2 flex-1">
-                    <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor</label>
-                    <input type="number" value={newFixedCost.amount || ''} onChange={e => setNewFixedCost({...newFixedCost, amount: e.target.value})} placeholder="0.00" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 text-gray-800 font-medium text-sm md:text-base transition-colors" />
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor</label>
+                    <input type="number" value={newFixedCost.amount || ''} onChange={e => setNewFixedCost({...newFixedCost, amount: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 text-gray-800 font-medium text-sm transition-colors" />
                   </div>
                   <div className="space-y-2 w-1/3">
-                    <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Dia</label>
-                    <input type="text" value={newFixedCost.due || ''} onChange={e => setNewFixedCost({...newFixedCost, due: e.target.value})} placeholder="15" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 text-gray-800 text-center text-sm md:text-base transition-colors" />
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Dia</label>
+                    <input type="text" value={newFixedCost.due || ''} onChange={e => setNewFixedCost({...newFixedCost, due: e.target.value})} placeholder="15" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 text-gray-800 text-center text-sm transition-colors" />
                   </div>
                 </div>
               </div>
-              <div className="p-6 md:p-8 pt-0 flex gap-3 md:gap-4">
-                <button onClick={() => setFixedCostModal(false)} className="flex-1 py-3 md:py-4 text-gray-600 text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
-                <button onClick={handleAddFixedCost} className="flex-1 py-3 md:py-4 bg-gray-800 text-white text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-900 transition-colors shadow-lg shadow-gray-200 hover:-translate-y-0.5">Adicionar</button>
+              <div className="flex gap-3">
+                <button onClick={() => setFixedCostModal(false)} className="flex-1 py-3 text-gray-600 text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
+                <button onClick={handleAddFixedCost} className="flex-1 py-3 bg-gray-800 text-white text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-900 transition-colors">Adicionar</button>
               </div>
             </div>
-          </div>
+          </BottomSheet>
         )}
 
-        {/* MODAL: Reserva de Emergência */}
+        {/* BOTTOM SHEET: Reserva de Emergência */}
         {emergencyModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-gray-900/20 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden mx-auto transition-colors duration-300">
-              <div className="flex justify-between items-center p-6 md:p-8 border-b border-gray-50 transition-colors duration-300">
-                <h3 className="text-base md:text-lg font-medium text-gray-800 tracking-tight flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-emerald-500" /> Reserva
-                </h3>
-                <button onClick={() => setEmergencyModal(false)} className="p-2 text-gray-400 hover:text-gray-700 transition-colors"><X className="w-5 h-5" /></button>
-              </div>
-              <div className="p-6 md:p-8 space-y-4 md:space-y-6">
+          <BottomSheet onClose={() => setEmergencyModal(false)}>
+            <div className="px-6 pb-8 pt-3 space-y-5">
+              <h3 className="text-base font-medium text-gray-800 flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-emerald-500" /> Reserva de Emergência
+              </h3>
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor Guardado (R$)</label>
-                  <input type="number" value={newEmergency.current || ''} onChange={e => setNewEmergency({...newEmergency, current: e.target.value})} placeholder="0.00" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-emerald-300 text-gray-800 font-medium text-sm md:text-base transition-colors" />
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor Guardado (R$)</label>
+                  <input type="number" value={newEmergency.current || ''} onChange={e => setNewEmergency({...newEmergency, current: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-emerald-300 text-gray-800 font-medium text-sm transition-colors" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Objetivo (R$)</label>
-                  <input type="number" value={newEmergency.target || ''} onChange={e => setNewEmergency({...newEmergency, target: e.target.value})} placeholder="0.00" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-emerald-300 text-gray-800 font-medium text-sm md:text-base transition-colors" />
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Objetivo (R$)</label>
+                  <input type="number" value={newEmergency.target || ''} onChange={e => setNewEmergency({...newEmergency, target: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-emerald-300 text-gray-800 font-medium text-sm transition-colors" />
                 </div>
               </div>
-              <div className="p-6 md:p-8 pt-0 flex gap-3 md:gap-4">
-                <button onClick={() => setEmergencyModal(false)} className="flex-1 py-3 md:py-4 text-gray-600 text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
-                <button onClick={() => {
-                   setEmergencyFund({ current: Number(newEmergency.current) || 0, target: Number(newEmergency.target) || 0 });
-                   setEmergencyModal(false);
-                   showToast('Reserva atualizada!');
-                }} className="flex-1 py-3 md:py-4 bg-emerald-500 text-white text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-100 hover:-translate-y-0.5">Salvar</button>
+              <div className="flex gap-3">
+                <button onClick={() => setEmergencyModal(false)} className="flex-1 py-3 text-gray-600 text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
+                <button onClick={() => { setEmergencyFund({ current: Number(newEmergency.current) || 0, target: Number(newEmergency.target) || 0 }); setEmergencyModal(false); showToast('Reserva atualizada!'); }} className="flex-1 py-3 text-white text-xs font-medium uppercase tracking-widest rounded-2xl transition-colors" style={{ background: '#6d4aad' }}>Salvar</button>
               </div>
             </div>
-          </div>
+          </BottomSheet>
         )}
 
-        {/* MODAL: Novo Investimento Customizado (Outros Externos) */}
+        {/* BOTTOM SHEET: Novo Investimento Externo */}
         {extInvModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-gray-900/20 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden mx-auto transition-colors duration-300">
-              <div className="flex justify-between items-center p-6 md:p-8 border-b border-gray-50 transition-colors duration-300">
-                <h3 className="text-base md:text-lg font-medium text-gray-800 tracking-tight flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-gray-600" /> Investimento Ext.
-                </h3>
-                <button onClick={() => setExtInvModal(false)} className="p-2 text-gray-400 hover:text-gray-700 transition-colors"><X className="w-5 h-5" /></button>
-              </div>
-              <div className="p-6 md:p-8 space-y-4 md:space-y-6">
+          <BottomSheet onClose={() => setExtInvModal(false)}>
+            <div className="px-6 pb-8 pt-3 space-y-5">
+              <h3 className="text-base font-medium text-gray-800 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-gray-500" /> Investimento Externo
+              </h3>
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Tipo</label>
-                  <select value={newExtInv.type} onChange={e => setNewExtInv({...newExtInv, type: e.target.value})} className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 text-gray-800 appearance-none text-sm md:text-base transition-colors">
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Tipo</label>
+                  <select value={newExtInv.type} onChange={e => setNewExtInv({...newExtInv, type: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 text-gray-800 appearance-none text-sm transition-colors">
                     <option>Dólar (USD)</option>
                     <option>Euro (EUR)</option>
                     <option>Outros</option>
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Descrição (Opcional)</label>
-                  <input type="text" value={newExtInv.name || ''} onChange={e => setNewExtInv({...newExtInv, name: e.target.value})} placeholder="Ex: Conta Nomad" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 text-gray-800 text-sm md:text-base transition-colors" />
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Descrição (Opcional)</label>
+                  <input type="text" value={newExtInv.name || ''} onChange={e => setNewExtInv({...newExtInv, name: e.target.value})} placeholder="Ex: Conta Nomad" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 text-gray-800 text-sm transition-colors" />
                 </div>
-                <div className="flex gap-3 md:gap-4">
+                <div className="flex gap-3">
                   <div className="space-y-2 flex-1">
-                    <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor na Moeda</label>
-                    <input type="number" value={newExtInv.amount || ''} onChange={e => setNewExtInv({...newExtInv, amount: e.target.value})} placeholder="0.00" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 text-gray-800 font-medium text-sm md:text-base transition-colors" />
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor na Moeda</label>
+                    <input type="number" value={newExtInv.amount || ''} onChange={e => setNewExtInv({...newExtInv, amount: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 text-gray-800 font-medium text-sm transition-colors" />
                   </div>
                   <div className="space-y-2 w-1/3">
-                    <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Cotação R$</label>
-                    <input type="number" value={newExtInv.rate || ''} onChange={e => setNewExtInv({...newExtInv, rate: e.target.value})} placeholder="1.00" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 text-gray-800 text-center text-sm md:text-base transition-colors" />
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Cotação R$</label>
+                    <input type="number" value={newExtInv.rate || ''} onChange={e => setNewExtInv({...newExtInv, rate: e.target.value})} placeholder="1.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 text-gray-800 text-center text-sm transition-colors" />
                   </div>
                 </div>
               </div>
-              <div className="p-6 md:p-8 pt-0 flex gap-3 md:gap-4">
-                <button onClick={() => setExtInvModal(false)} className="flex-1 py-3 md:py-4 text-gray-600 text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
-                <button onClick={handleAddExtInvestment} className="flex-1 py-3 md:py-4 bg-gray-800 text-white text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-900 transition-colors shadow-lg shadow-gray-200 hover:-translate-y-0.5">Adicionar</button>
+              <div className="flex gap-3">
+                <button onClick={() => setExtInvModal(false)} className="flex-1 py-3 text-gray-600 text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
+                <button onClick={handleAddExtInvestment} className="flex-1 py-3 bg-gray-800 text-white text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-900 transition-colors">Adicionar</button>
               </div>
             </div>
-          </div>
+          </BottomSheet>
         )}
 
-        {/* MODAL: Nova Meta */}
+        {/* BOTTOM SHEET: Nova Meta */}
         {goalModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-gray-900/20 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden mx-auto transition-colors duration-300">
-              <div className="flex justify-between items-center p-6 md:p-8 border-b border-gray-50 transition-colors duration-300">
-                <h3 className="text-base md:text-lg font-medium text-gray-800 tracking-tight flex items-center gap-2">
-                  <Target className="w-5 h-5 text-red-500" /> Nova Meta
-                </h3>
-                <button onClick={() => setGoalModal(false)} className="p-2 text-gray-400 hover:text-gray-700 transition-colors"><X className="w-5 h-5" /></button>
-              </div>
-              <div className="p-6 md:p-8 space-y-4 md:space-y-6">
+          <BottomSheet onClose={() => setGoalModal(false)}>
+            <div className="px-6 pb-8 pt-3 space-y-5">
+              <h3 className="text-base font-medium text-gray-800 flex items-center gap-2">
+                <Target className="w-5 h-5 text-red-500" /> Nova Meta
+              </h3>
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Nome da Meta</label>
-                  <input type="text" value={newGoal.name || ''} onChange={e => setNewGoal({...newGoal, name: e.target.value})} placeholder="Ex: Comprar Carro" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 text-gray-800 text-sm md:text-base transition-colors" />
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Nome da Meta</label>
+                  <input type="text" value={newGoal.name || ''} onChange={e => setNewGoal({...newGoal, name: e.target.value})} placeholder="Ex: Comprar Carro" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 text-gray-800 text-sm transition-colors" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor Alvo (R$)</label>
-                  <input type="number" value={newGoal.target || ''} onChange={e => setNewGoal({...newGoal, target: e.target.value})} placeholder="0.00" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 text-gray-800 font-medium text-sm md:text-base transition-colors" />
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor Alvo (R$)</label>
+                  <input type="number" value={newGoal.target || ''} onChange={e => setNewGoal({...newGoal, target: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 text-gray-800 font-medium text-sm transition-colors" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Já Guardado (Opcional)</label>
-                  <input type="number" value={newGoal.current || ''} onChange={e => setNewGoal({...newGoal, current: e.target.value})} placeholder="0.00" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-red-300 text-gray-800 font-medium text-sm md:text-base transition-colors" />
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Já Guardado (Opcional)</label>
+                  <input type="number" value={newGoal.current || ''} onChange={e => setNewGoal({...newGoal, current: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 text-gray-800 font-medium text-sm transition-colors" />
                 </div>
               </div>
-              <div className="p-6 md:p-8 pt-0 flex gap-3 md:gap-4">
-                <button onClick={() => setGoalModal(false)} className="flex-1 py-3 md:py-4 text-gray-600 text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
-                <button onClick={handleAddGoal} className="flex-1 py-3 md:py-4 bg-red-500 text-white text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-red-600 transition-colors shadow-lg shadow-red-100 hover:-translate-y-0.5">Criar Meta</button>
+              <div className="flex gap-3">
+                <button onClick={() => setGoalModal(false)} className="flex-1 py-3 text-gray-600 text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
+                <button onClick={handleAddGoal} className="flex-1 py-3 bg-red-500 text-white text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-red-600 transition-colors">Criar Meta</button>
               </div>
             </div>
-          </div>
+          </BottomSheet>
         )}
 
-        {/* MODAL: Adicionar Valor à Meta */}
+        {/* BOTTOM SHEET: Adicionar Valor à Meta */}
         {addGoalValueModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-gray-900/20 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden mx-auto transition-colors duration-300">
-              <div className="flex justify-between items-center p-6 md:p-8 border-b border-gray-50 transition-colors duration-300">
-                <h3 className="text-base md:text-lg font-medium text-gray-800 tracking-tight flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-emerald-500" /> Adicionar Valor
-                </h3>
-                <button onClick={() => setAddGoalValueModal(null)} className="p-2 text-gray-400 hover:text-gray-700 transition-colors"><X className="w-5 h-5" /></button>
-              </div>
-              <div className="p-6 md:p-8 space-y-4 md:space-y-6">
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                  <p className="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest mb-1">Meta: {addGoalValueModal.name}</p>
-                  <p className="text-sm font-medium text-gray-800">
-                    Atual: R$ {(addGoalValueModal.current || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-                  </p>
+          <BottomSheet onClose={() => setAddGoalValueModal(null)}>
+            <div className="px-6 pb-8 pt-3 space-y-5">
+              <h3 className="text-base font-medium text-gray-800 flex items-center gap-2">
+                <Plus className="w-5 h-5 text-emerald-500" /> Adicionar Valor
+              </h3>
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50">
+                  <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Meta: {addGoalValueModal.name}</p>
+                  <p className="text-sm font-medium text-gray-800">Atual: R$ {(addGoalValueModal.current || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor a adicionar (R$)</label>
-                  <input type="number" value={addGoalAmount} onChange={e => setAddGoalAmount(e.target.value)} placeholder="0.00" className="w-full px-4 md:px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-emerald-300 text-gray-800 font-medium text-sm md:text-base transition-colors" />
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Valor a adicionar (R$)</label>
+                  <input type="number" value={addGoalAmount} onChange={e => setAddGoalAmount(e.target.value)} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-emerald-300 text-gray-800 font-medium text-sm transition-colors" />
                 </div>
               </div>
-              <div className="p-6 md:p-8 pt-0 flex gap-3 md:gap-4">
-                <button onClick={() => setAddGoalValueModal(null)} className="flex-1 py-3 md:py-4 text-gray-600 text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
-                <button onClick={handleAddValueToGoal} className="flex-1 py-3 md:py-4 bg-emerald-500 text-white text-[10px] md:text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-100 hover:-translate-y-0.5">Confirmar</button>
+              <div className="flex gap-3">
+                <button onClick={() => setAddGoalValueModal(null)} className="flex-1 py-3 text-gray-600 text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors">Cancelar</button>
+                <button onClick={handleAddValueToGoal} className="flex-1 py-3 text-white text-xs font-medium uppercase tracking-widest rounded-2xl transition-colors" style={{ background: '#6d4aad' }}>Confirmar</button>
               </div>
             </div>
-          </div>
+          </BottomSheet>
         )}
 
         {/* TOAST Notification */}
