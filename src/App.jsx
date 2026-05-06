@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import Sidebar from './Sidebar';
 import { 
   Home, 
   Wallet, 
@@ -418,6 +419,9 @@ export default function App() {
   const [goalIndex, setGoalIndex] = useState(0);
   const [chartPeriod, setChartPeriod] = useState('6M');
   
+  // --- Sidebar ---
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   // --- Modais ---
   const [txModal, setTxModal] = useState(null);
   const [toast, setToast] = useState(null);
@@ -1202,7 +1206,9 @@ export default function App() {
   return (
     <>
       <style>{customStyles}</style>
-      
+
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
       {/* Wrapper Principal Sensível ao Tema */}
       <div className="flex h-screen w-full overflow-hidden relative theme-dark" style={{backgroundColor: '#000000'}}>
 
@@ -1236,9 +1242,9 @@ export default function App() {
                   {isPrivate ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
 
-                {/* Menu hambúrguer → abre perfil */}
+                {/* Menu hambúrguer → abre sidebar */}
                 <button
-                  onClick={() => setActiveTab('profile')}
+                  onClick={() => setSidebarOpen(true)}
                   style={{ color: '#888', transition: 'color 0.18s ease' }}
                   className="p-2 rounded-full hover:text-white flex flex-col gap-[5px] items-center justify-center"
                   aria-label="Menu"
