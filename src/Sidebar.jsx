@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, LogIn, Phone, FileText, Headphones, ChevronRight } from 'lucide-react';
+import { X, LogIn, Phone, FileText, Headphones, ChevronRight, LogOut } from 'lucide-react';
 import panteraImg from './assets/pantera.png';
 
 const NAV_ITEMS = [
@@ -41,7 +41,7 @@ const itemVariants = {
 
 // --- Component ---
 
-export default function Sidebar({ isOpen, onClose }) {
+export default function Sidebar({ isOpen, onClose, onLogout }) {
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
@@ -203,8 +203,42 @@ export default function Sidebar({ isOpen, onClose }) {
               </ul>
             </motion.nav>
 
+            {/* ── Logout ── */}
+            {onLogout && (
+              <div style={{ padding: '8px 12px 0' }}>
+                <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '0 2px 8px' }} />
+                <motion.button
+                  onClick={() => { onClose(); onLogout(); }}
+                  whileHover={{ backgroundColor: 'rgba(239,68,68,0.08)' }}
+                  whileTap={{ scale: 0.975, backgroundColor: 'rgba(239,68,68,0.13)' }}
+                  transition={{ duration: 0.15 }}
+                  style={{
+                    width: '100%',
+                    display: 'flex', alignItems: 'center', gap: '16px',
+                    padding: '15px 14px',
+                    borderRadius: '12px',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                >
+                  <LogOut size={19} strokeWidth={1.65} color="#ef4444" style={{ flexShrink: 0 }} />
+                  <span style={{
+                    flex: 1,
+                    fontSize: '15px', fontWeight: 500,
+                    color: '#ef4444',
+                    fontFamily: "'Manrope', sans-serif",
+                    letterSpacing: '-0.01em',
+                  }}>
+                    Sair da conta
+                  </span>
+                </motion.button>
+              </div>
+            )}
+
             {/* ── Footer ── */}
-            <div style={{ padding: '32px 24px 48px', textAlign: 'center' }}>
+            <div style={{ padding: '24px 24px 48px', textAlign: 'center' }}>
               <p style={{ fontSize: '11px', color: '#4B5563', letterSpacing: '0.02em' }}>
                 TitoVest © 2026
               </p>

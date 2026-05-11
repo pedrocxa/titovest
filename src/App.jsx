@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Sidebar from './Sidebar';
+import AuthScreen from './components/AuthScreen';
+import { supabase } from './lib/supabase';
 import { 
   Home, 
   Wallet, 
@@ -33,7 +35,8 @@ import {
   Briefcase,
   Landmark,
   CalendarDays,
-  AlertTriangle
+  AlertTriangle,
+  LogOut
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -388,16 +391,40 @@ function BottomSheet({ onClose, children }) {
 
 export default function App() {
   // --- Estados Base ---
+  const [session, setSession] = useState(undefined); // undefined = carregando, null = sem sessão, object = autenticado
   const [userName, setUserName] = useLocalStorage('titovest_user', '');
   const [welcomeName, setWelcomeName] = useState('');
   const [splashVisible, setSplashVisible] = useState(true);
   const [splashFading, setSplashFading] = useState(false);
 
+  // Carrega sessão inicial e escuta mudanças de auth
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Sincroniza userName com o nome do usuário autenticado
+  useEffect(() => {
+    if (session?.user) {
+      const displayName =
+        session.user.user_metadata?.name ||
+        session.user.email?.split('@')[0] ||
+        'Usuário';
+      setUserName(displayName);
+    }
+  }, [session]);
+
   useEffect(() => {
     const fadeTimer = setTimeout(() => setSplashFading(true), 1500);
     const hideTimer = setTimeout(() => {
       setSplashVisible(false);
-      if (!userName) setUserName('Usuário');
     }, 1900);
     return () => { clearTimeout(fadeTimer); clearTimeout(hideTimer); };
   }, []);
@@ -569,10 +596,17 @@ export default function App() {
   const prevGoal = () => { if (gList.length > 0) setGoalIndex((prev) => (prev - 1 + gList.length) % gList.length); };
   
   const handleResetData = () => { if(window.confirm("Apagar todos os dados?")) { localStorage.clear(); window.location.reload(); } };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    // onAuthStateChange define session como null → AuthScreen é renderizada
+  };
   const openHistory = (filterType) => { setHistoryFilter(filterType); setActiveTab('history'); };
 
-  // --- TELA SPLASH ---
-  if (splashVisible) {
+  // --- TELA SPLASH / LOADING ---
+  // session === undefined enquanto getSession() ainda não respondeu;
+  // o splash cobre esse período naturalmente (dura 1.9s).
+  if (splashVisible || session === undefined) {
     return (
       <div
         style={{
@@ -615,6 +649,11 @@ export default function App() {
         </div>
       </div>
     );
+  }
+
+  // --- GATE DE AUTENTICAÇÃO ---
+  if (!session) {
+    return <AuthScreen />;
   }
 
   // --- Telas ---
@@ -1207,7 +1246,7 @@ export default function App() {
     <>
       <style>{customStyles}</style>
 
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onLogout={handleLogout} />
 
       {/* Wrapper Principal Sensível ao Tema */}
       <div className="flex h-screen w-full overflow-hidden relative theme-dark" style={{backgroundColor: '#000000'}}>
@@ -1321,6 +1360,9 @@ export default function App() {
                 </div>
               </div>
               <div className="flex flex-col gap-3">
+                <button onClick={handleLogout} className="w-full py-3 text-white text-xs font-medium uppercase tracking-widest rounded-2xl transition-colors flex items-center justify-center gap-2" style={{ background: '#6d4aad' }}>
+                  <LogOut className="w-4 h-4" /> Sair da conta
+                </button>
                 <button onClick={handleResetData} className="w-full py-3 bg-red-500 text-white text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-red-600 transition-colors">Apagar todos os dados</button>
                 <button onClick={() => setSettingsModal(false)} className="w-full py-3 text-gray-600 bg-gray-50 text-xs font-medium uppercase tracking-widest rounded-2xl hover:bg-gray-100 transition-colors">Cancelar</button>
               </div>
