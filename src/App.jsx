@@ -217,20 +217,17 @@ const customStyles = `
      DESIGN TOKENS — CARD
   ═══════════════════════════════════════════ */
   .clean-card {
-    background:         rgba(255, 255, 255, 0.038);
-    backdrop-filter:    blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background:         transparent;
+    backdrop-filter:    none;
+    -webkit-backdrop-filter: none;
     border-radius:      14px;
-    border:             1px solid rgba(255, 255, 255, 0.062);
-    box-shadow:         0 1px 6px rgba(0,0,0,0.24);
+    border:             1px solid rgba(255, 255, 255, 0.035);
+    box-shadow:         none;
     font-family: 'Manrope', sans-serif;
-    transition:
-      border-color  200ms ease,
-      box-shadow    200ms ease;
+    transition: border-color 200ms ease;
   }
   .clean-card:hover {
-    border-color: rgba(255,255,255,0.096);
-    box-shadow:   0 2px 10px rgba(0,0,0,0.30);
+    border-color: rgba(255,255,255,0.06);
   }
 
   /* Números financeiros — figura tabelada, tracking apertado */
@@ -287,8 +284,11 @@ const customStyles = `
 
   .theme-dark .bg-white      { background-color: #0d0d0d !important; border-color: rgba(255,255,255,0.07) !important; }
   .theme-dark .clean-card    {
-    background: rgba(255,255,255,0.038) !important;
-    border-color: rgba(255,255,255,0.062) !important;
+    background: transparent !important;
+    border-color: rgba(255,255,255,0.035) !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
   .theme-dark .bg-\\[\\#f8f9fa\\] { background-color: #000000 !important; }
   .theme-dark .bg-gray-50    { background-color: rgba(255,255,255,0.040) !important; }
@@ -525,10 +525,10 @@ export default function App() {
   }, [session]);
 
   useEffect(() => {
-    const fadeTimer = setTimeout(() => setSplashFading(true), 1500);
+    const fadeTimer = setTimeout(() => setSplashFading(true), 2000);
     const hideTimer = setTimeout(() => {
       setSplashVisible(false);
-    }, 1900);
+    }, 2400);
     return () => { clearTimeout(fadeTimer); clearTimeout(hideTimer); };
   }, []);
 
@@ -947,7 +947,7 @@ export default function App() {
 
   // --- TELA SPLASH / LOADING ---
   // session === undefined enquanto getSession() ainda não respondeu;
-  // o splash cobre esse período naturalmente (dura 1.9s).
+  // o splash cobre esse período naturalmente (dura 2.4s).
   if (splashVisible || session === undefined) {
     return (
       <div
@@ -962,6 +962,7 @@ export default function App() {
           overflow: 'hidden',
           opacity: splashFading ? 0 : 1,
           transition: 'opacity 0.4s ease',
+          position: 'relative'
         }}
       >
         <style>{customStyles}</style>
@@ -970,24 +971,20 @@ export default function App() {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '18px',
             animation: 'titovest-pulse 2.8s ease-in-out infinite',
           }}
         >
-          <h1
-            style={{
-              fontFamily: "'Manrope', sans-serif",
-              fontWeight: 500,
-              fontSize: 'clamp(2.2rem, 7vw, 3.8rem)',
-              letterSpacing: '-0.03em',
-              lineHeight: 1,
-              margin: 0,
-            }}
-          >
-            <span style={{ color: '#ffffff' }}>Tito</span>
-            <span style={{ color: '#6d4aad' }}>Vest</span>
-          </h1>
-          <div style={{ height: '24px' }} />
+          <img 
+            src="/favicon.svg" 
+            alt="TitoVest Logo" 
+            style={{ height: '80px', width: 'auto', opacity: 0.95 }} 
+          />
+        </div>
+        
+        <div style={{ position: 'absolute', bottom: 'env(safe-area-inset-bottom, 32px)', left: 0, right: 0, textAlign: 'center', paddingBottom: '32px' }}>
+          <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', letterSpacing: '0.06em', fontFamily: "'Outfit', sans-serif", fontWeight: 500 }}>
+            TitoVest © 2026
+          </span>
         </div>
       </div>
     );
@@ -1593,39 +1590,38 @@ export default function App() {
           {/* Header + Nav Superior */}
           <div className="sticky top-0 z-30">
             <header
-              style={{ background: '#000', borderBottom: '1px solid #1a1a1a' }}
-              className="px-5 md:px-8 py-4 flex justify-between items-center"
+              style={{ background: '#000' }}
+              className="px-5 md:px-8 pt-5 pb-3 flex justify-between items-center"
             >
-              {/* Título */}
-              <h1
+              {/* Logo */}
+              <div
                 onClick={() => setActiveTab('home')}
-                style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', letterSpacing: '-0.02em', lineHeight: 1, cursor: 'pointer' }}
+                className="cursor-pointer flex items-center"
               >
-                <span style={{ color: '#ffffff' }}>Tito</span>
-                <span style={{ color: '#6d4aad' }}>Vest</span>
-              </h1>
+                <img src="/favicon.svg" alt="TitoVest Logo" className="h-14 md:h-16 w-auto opacity-90 hover:opacity-100 transition-opacity" />
+              </div>
 
               {/* Ações direita */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 {/* Privacidade */}
                 <button
                   onClick={() => setIsPrivate(!isPrivate)}
                   style={{ color: '#888', transition: 'color 0.18s ease' }}
-                  className="p-2 rounded-full hover:text-white"
+                  className="p-1.5 rounded-full hover:text-white"
                 >
-                  {isPrivate ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {isPrivate ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
 
                 {/* Menu hambúrguer → abre sidebar */}
                 <button
                   onClick={() => setSidebarOpen(true)}
                   style={{ color: '#888', transition: 'color 0.18s ease' }}
-                  className="p-2 rounded-full hover:text-white flex flex-col gap-[5px] items-center justify-center"
+                  className="p-1.5 rounded-full hover:text-white flex flex-col gap-[4px] items-center justify-center"
                   aria-label="Menu"
                 >
-                  <span style={{ display: 'block', width: '20px', height: '1.5px', background: 'currentColor', borderRadius: '2px' }} />
-                  <span style={{ display: 'block', width: '20px', height: '1.5px', background: 'currentColor', borderRadius: '2px' }} />
-                  <span style={{ display: 'block', width: '20px', height: '1.5px', background: 'currentColor', borderRadius: '2px' }} />
+                  <span style={{ display: 'block', width: '16px', height: '1px', background: 'currentColor', borderRadius: '2px' }} />
+                  <span style={{ display: 'block', width: '16px', height: '1px', background: 'currentColor', borderRadius: '2px' }} />
+                  <span style={{ display: 'block', width: '16px', height: '1px', background: 'currentColor', borderRadius: '2px' }} />
                 </button>
               </div>
             </header>
