@@ -220,7 +220,7 @@ const customStyles = `
     background:         transparent;
     backdrop-filter:    none;
     -webkit-backdrop-filter: none;
-    border-radius:      14px;
+    border-radius:      8px;
     border:             1px solid rgba(255, 255, 255, 0.035);
     box-shadow:         none;
     font-family: 'Manrope', sans-serif;
@@ -466,8 +466,8 @@ function BottomSheet({ onClose, children }) {
           background: 'rgba(16,16,16,0.98)',
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
-          borderTopLeftRadius: '16px',
-          borderTopRightRadius: '16px',
+          borderTopLeftRadius: '8px',
+          borderTopRightRadius: '8px',
           border: '1px solid rgba(255,255,255,0.09)',
           borderBottom: 'none',
           transform: `translateY(${dragY}px)`,
@@ -1011,12 +1011,12 @@ export default function App() {
       <div className="animate-fade-in flex flex-col h-full">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
           <div className="flex items-center gap-3.5">
-            <button onClick={() => setActiveTab('wallet')} className="p-2 rounded-xl hover:bg-gray-50 transition-colors" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)' }}>
+            <button onClick={() => setActiveTab('wallet')} className="p-2 rounded-lg hover:bg-gray-50 transition-colors" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)' }}>
               <ChevronLeft className="w-4 h-4 text-gray-600" />
             </button>
             <h2 className="text-2xl font-semibold text-gray-800" style={{ letterSpacing: '-0.028em' }}>{title}</h2>
           </div>
-          <div className="flex self-start sm:self-auto rounded-xl p-1" style={{ background: 'rgba(255,255,255,0.055)', border: '1px solid rgba(255,255,255,0.085)' }}>
+          <div className="flex self-start sm:self-auto rounded-lg p-1" style={{ background: 'rgba(255,255,255,0.055)', border: '1px solid rgba(255,255,255,0.085)' }}>
             <button onClick={()=>setHistoryFilter('all')} className={`px-4 py-1.5 text-[11px] font-semibold rounded-lg transition-all ${historyFilter === 'all' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`} style={historyFilter === 'all' ? { background: 'rgba(255,255,255,0.12)' } : {}}>Tudo</button>
             <button onClick={()=>setHistoryFilter('in')} className={`px-4 py-1.5 text-[11px] font-semibold rounded-lg transition-all ${historyFilter === 'in' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`} style={historyFilter === 'in' ? { background: 'rgba(255,255,255,0.12)' } : {}}>Entradas</button>
             <button onClick={()=>setHistoryFilter('out')} className={`px-4 py-1.5 text-[11px] font-semibold rounded-lg transition-all ${historyFilter === 'out' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`} style={historyFilter === 'out' ? { background: 'rgba(255,255,255,0.12)' } : {}}>Saídas</button>
@@ -1041,9 +1041,9 @@ export default function App() {
               </div>
             ) : (
               filteredTx.map(tx => (
-                <div key={tx.id} className="flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 rounded-xl transition-colors group mb-1">
+                <div key={tx.id} className="flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 rounded-lg transition-colors group mb-1">
                   <div className="flex items-center gap-3 md:gap-4 truncate">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${tx.type === 'in' ? 'bg-gray-100 text-gray-600' : 'bg-red-50 text-red-500'}`}>
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${tx.type === 'in' ? 'bg-gray-100 text-gray-600' : 'bg-red-50 text-red-500'}`}>
                       {tx.type === 'in' ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                     </div>
                     <div className="truncate">
@@ -1153,7 +1153,7 @@ export default function App() {
                 tList.slice(0, 6).map((tx) => (
                   <div key={tx.id} className="px-5 py-4 md:px-7 md:py-5 flex items-center justify-between border-b border-gray-50 hover:bg-gray-50/50 transition-colors group">
                     <div className="flex items-center gap-3 md:gap-4">
-                      <div className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center shrink-0 ${tx.type === 'in' ? 'bg-gray-50 text-gray-500' : 'bg-red-50 text-red-400'}`} style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <div className={`w-9 h-9 md:w-10 md:h-10 rounded-lg flex items-center justify-center shrink-0 ${tx.type === 'in' ? 'bg-gray-50 text-gray-500' : 'bg-red-50 text-red-400'}`} style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
                         {tx.type === 'in' ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                       </div>
                       <div>
@@ -1211,14 +1211,14 @@ export default function App() {
            <div className="clean-card flex flex-col items-center justify-center py-14 w-full" style={{ borderStyle: 'dashed', borderColor: 'rgba(255,255,255,0.10)' }}>
               <Target className="w-10 h-10 mb-4" style={{ color: 'rgba(255,255,255,0.20)' }} />
               <p className="text-gray-400 mb-6 text-sm text-center px-4" style={{ letterSpacing: '-0.01em' }}>Nenhuma meta cadastrada para este mês.</p>
-              <button onClick={() => setActiveTab('profile')} className="px-6 py-2.5 text-white rounded-xl text-xs font-semibold hover:opacity-80 transition-opacity shadow-md" style={{ background: '#6d4aad', letterSpacing: '0.04em' }}>Ir para perfil</button>
+              <button onClick={() => setActiveTab('profile')} className="px-6 py-2.5 text-white rounded-lg text-xs font-semibold hover:opacity-80 transition-opacity shadow-md" style={{ background: '#6d4aad', letterSpacing: '0.04em' }}>Ir para perfil</button>
            </div>
         ) : (
           <div className="clean-card relative overflow-hidden py-8 md:p-10 flex flex-col md:flex-row items-center justify-center gap-12 min-h-[250px]">
-            <button onClick={prevGoal} className="absolute left-2 md:left-5 top-1/2 -translate-y-1/2 p-2 z-20 rounded-xl transition-colors hover:bg-gray-50" style={{ color: 'rgba(255,255,255,0.30)' }}>
+            <button onClick={prevGoal} className="absolute left-2 md:left-5 top-1/2 -translate-y-1/2 p-2 z-20 rounded-lg transition-colors hover:bg-gray-50" style={{ color: 'rgba(255,255,255,0.30)' }}>
               <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" strokeWidth={1.5} />
             </button>
-            <button onClick={nextGoal} className="absolute right-2 md:right-5 top-1/2 -translate-y-1/2 p-2 z-20 rounded-xl transition-colors hover:bg-gray-50" style={{ color: 'rgba(255,255,255,0.30)' }}>
+            <button onClick={nextGoal} className="absolute right-2 md:right-5 top-1/2 -translate-y-1/2 p-2 z-20 rounded-lg transition-colors hover:bg-gray-50" style={{ color: 'rgba(255,255,255,0.30)' }}>
               <ChevronRight className="w-5 h-5 md:w-6 md:h-6" strokeWidth={1.5} />
             </button>
 
@@ -1247,7 +1247,7 @@ export default function App() {
                         <h4 className="text-base md:text-lg font-semibold text-gray-800" style={{ letterSpacing: '-0.02em' }}>{goal.name}</h4>
                         <p className="text-xs text-gray-400 tv-num">Atual: <span className="text-gray-600 font-semibold">{isPrivate ? 'R$ •••' : `R$ ${(goal.current || 0).toLocaleString('pt-BR')}`}</span></p>
                         <p className="text-xs text-gray-400 tv-num">Objetivo: <span className="text-gray-600 font-semibold">{isPrivate ? 'R$ •••' : `R$ ${(goal.target || 0).toLocaleString('pt-BR')}`}</span></p>
-                        <button onClick={() => { setAddGoalValueModal(goal); setAddGoalAmount(''); }} className="mt-2 px-4 py-2 text-gray-500 hover:text-gray-300 text-[10px] font-semibold rounded-xl transition-colors w-fit" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.04em' }}>Adicionar valor</button>
+                        <button onClick={() => { setAddGoalValueModal(goal); setAddGoalAmount(''); }} className="mt-2 px-4 py-2 text-gray-500 hover:text-gray-300 text-[10px] font-semibold rounded-lg transition-colors w-fit" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.04em' }}>Adicionar valor</button>
                       </div>
                     </div>
                   );
@@ -1266,7 +1266,7 @@ export default function App() {
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 animate-fade-in">
         <div onClick={() => openHistory('in')} className="clean-card p-5 md:p-6 flex items-center gap-4 cursor-pointer hover:-translate-y-0.5 transition-transform duration-200 group" style={{ borderLeft: '2px solid rgba(255,255,255,0.10)' }}>
-          <div className="w-10 h-10 rounded-2xl bg-gray-50 text-gray-600 flex items-center justify-center shrink-0 group-hover:bg-gray-100 transition-colors">
+          <div className="w-10 h-10 rounded-lg bg-gray-50 text-gray-600 flex items-center justify-center shrink-0 group-hover:bg-gray-100 transition-colors">
             <ArrowDownRight className="w-4 h-4 md:w-5 md:h-5" />
           </div>
           <div className="flex-1 min-w-0">
@@ -1277,7 +1277,7 @@ export default function App() {
           </div>
         </div>
         <div onClick={() => openHistory('out')} className="clean-card p-5 md:p-6 flex items-center gap-4 cursor-pointer hover:-translate-y-0.5 transition-transform duration-200 group" style={{ borderLeft: '2px solid rgba(109,74,173,0.28)' }}>
-          <div className="w-10 h-10 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center shrink-0 group-hover:bg-red-100 transition-colors">
+          <div className="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0 group-hover:bg-red-100 transition-colors">
             <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5" />
           </div>
           <div className="flex-1 min-w-0">
@@ -1289,7 +1289,7 @@ export default function App() {
         </div>
 
         <div className="clean-card p-5 md:p-6 flex items-center gap-4" style={{ borderLeft: '2px solid rgba(16,185,129,0.28)' }}>
-          <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
             <Wallet className="w-4 h-4 md:w-5 md:h-5" />
           </div>
           <div className="flex flex-col w-full min-w-0">
@@ -1323,7 +1323,7 @@ export default function App() {
                   }
                 }}
                 placeholder="0.00"
-                className="w-full pl-11 pr-4 py-3 md:py-4 text-lg md:text-xl font-semibold text-gray-800 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-gray-300 focus:bg-transparent transition-all tv-num"
+                className="w-full pl-11 pr-4 py-3 md:py-4 text-lg md:text-xl font-semibold text-gray-800 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none focus:border-gray-300 focus:bg-transparent transition-all tv-num"
               />
             </div>
             <p className="text-[9px] text-gray-400 mt-3" style={{ letterSpacing: '0.02em' }}>Pressione <strong className="text-gray-500">ENTER</strong> para confirmar.</p>
@@ -1360,7 +1360,7 @@ export default function App() {
                 <p className="text-[11px] text-gray-400 py-5 text-center" style={{ letterSpacing: '0.02em' }}>Nenhum investimento externo registado.</p>
               ) : (
                 invExtList.map(inv => (
-                  <div key={inv.id} className="flex justify-between items-center p-4 rounded-2xl transition-all duration-200 hover:-translate-y-0.5 group" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div key={inv.id} className="flex justify-between items-center p-4 rounded-lg transition-all duration-200 hover:-translate-y-0.5 group" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                     <div className="flex flex-col gap-0.5">
                       <span className="text-sm font-semibold text-gray-800" style={{ letterSpacing: '-0.01em' }}>{inv.type}</span>
                       <span className="text-[10px] text-gray-400" style={{ letterSpacing: '0.06em', textTransform: 'uppercase' }}>{inv.name}</span>
@@ -1387,7 +1387,7 @@ export default function App() {
                 <h3 className="text-sm font-semibold text-gray-800" style={{ letterSpacing: '-0.01em' }}>Custos Fixos & Assinaturas</h3>
                 <p className="text-[10px] text-red-500 font-semibold mt-1.5 tv-num" style={{ letterSpacing: '0.02em' }}>Total: R$ {isPrivate ? '••••' : committedTotal.toLocaleString('pt-BR', {minimumFractionDigits:2})}</p>
               </div>
-              <button onClick={() => setFixedCostModal(true)} className="w-8 h-8 rounded-xl flex items-center justify-center text-gray-500 hover:text-red-400 transition-colors" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.10)' }}>
+              <button onClick={() => setFixedCostModal(true)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-red-400 transition-colors" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.10)' }}>
                 <Plus className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -1398,9 +1398,9 @@ export default function App() {
                 fcList.map((cost) => {
                   const IconCmp = getIcon(cost.iconName);
                   return (
-                    <div key={cost.id} className="flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 rounded-xl transition-colors group">
+                    <div key={cost.id} className="flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 rounded-lg transition-colors group">
                       <div className="flex items-center gap-3 truncate">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-400 group-hover:text-red-400 transition-colors shrink-0" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)' }}>
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 group-hover:text-red-400 transition-colors shrink-0" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)' }}>
                           <IconCmp className="w-3.5 h-3.5" />
                         </div>
                         <div className="truncate">
@@ -1465,13 +1465,13 @@ export default function App() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-2xl transition-transform duration-200 hover:-translate-y-0.5" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="p-4 rounded-lg transition-transform duration-200 hover:-translate-y-0.5" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                   <p className="tv-label mb-2">Econ. Mensal Estimada</p>
                   <p className={`text-xl md:text-2xl font-semibold ${forecastColor}`}>
                     <AnimatedNumber value={finalForecast} prefix="R$ " decimals={2} isPrivate={isPrivate} />
                   </p>
                 </div>
-                <div className="p-4 rounded-2xl transition-transform duration-200 hover:-translate-y-0.5" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="p-4 rounded-lg transition-transform duration-200 hover:-translate-y-0.5" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                   <p className="tv-label mb-2">Renda Poupada</p>
                   <p className="text-xl md:text-2xl font-semibold text-gray-800 tv-num">
                     {isPrivate ? '••%' : `${Math.max(0, Math.round(savingsRate))}%`}
@@ -1521,7 +1521,7 @@ export default function App() {
       <div className="clean-card p-6 md:p-8 animate-fade-in delay-300 w-full mb-8 md:mb-12">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 md:mb-8 border-b border-gray-50 pb-4 gap-4 sm:gap-0">
           <h3 className="text-sm font-semibold text-gray-800" style={{ letterSpacing: '-0.01em' }}>Suas Metas</h3>
-          <button onClick={() => setGoalModal(true)} className="flex items-center justify-center gap-2 text-[11px] font-semibold bg-red-50 text-red-500 px-4 py-2.5 sm:py-2 rounded-xl hover:bg-red-100 transition-colors w-full sm:w-auto" style={{ letterSpacing: '0.04em' }}>
+          <button onClick={() => setGoalModal(true)} className="flex items-center justify-center gap-2 text-[11px] font-semibold bg-red-50 text-red-500 px-4 py-2.5 sm:py-2 rounded-lg hover:bg-red-100 transition-colors w-full sm:w-auto" style={{ letterSpacing: '0.04em' }}>
             <Plus className="w-3.5 h-3.5"/> Nova Meta
           </button>
         </div>
@@ -1533,7 +1533,7 @@ export default function App() {
             gList.map(goal => {
               const perc = Math.min(((goal.current || 0) / (goal.target || 1)) * 100, 100);
               return (
-                <div key={goal.id} className="flex items-center gap-4 p-4 rounded-2xl flex-col min-[400px]:flex-row text-center min-[400px]:text-left relative group overflow-hidden w-full shrink-0 transition-all duration-200 hover:-translate-y-0.5" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.085)' }}>
+                <div key={goal.id} className="flex items-center gap-4 p-4 rounded-lg flex-col min-[400px]:flex-row text-center min-[400px]:text-left relative group overflow-hidden w-full shrink-0 transition-all duration-200 hover:-translate-y-0.5" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.085)' }}>
                   <button onClick={() => {
                     setGoals(gList.filter(g => g.id !== goal.id));
                     showToast('Meta removida!');
@@ -1552,7 +1552,7 @@ export default function App() {
                     <span className="text-sm font-semibold text-gray-800" style={{ letterSpacing: '-0.01em' }}>{goal.name}</span>
                     <span className="text-[10px] text-gray-400 tv-num">Meta: R$ {isPrivate ? '••••' : (goal.target || 0).toLocaleString('pt-BR')}</span>
                     <span className="text-[10px] text-gray-500 font-semibold tv-num">Atual: R$ {isPrivate ? '••••' : (goal.current || 0).toLocaleString('pt-BR')}</span>
-                    <button onClick={() => { setAddGoalValueModal(goal); setAddGoalAmount(''); }} className="mt-2 w-full py-2 text-gray-500 hover:text-gray-300 text-[10px] font-semibold rounded-xl transition-colors" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.04em' }}>Adicionar valor</button>
+                    <button onClick={() => { setAddGoalValueModal(goal); setAddGoalAmount(''); }} className="mt-2 w-full py-2 text-gray-500 hover:text-gray-300 text-[10px] font-semibold rounded-lg transition-colors" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.04em' }}>Adicionar valor</button>
                   </div>
                 </div>
               )
@@ -1683,7 +1683,7 @@ export default function App() {
               <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2.5" style={{ letterSpacing: '-0.01em' }}>
                 <Settings className="w-4 h-4 text-gray-500" style={{ opacity: 0.7 }}/> Definições
               </h3>
-              <div className="flex items-start gap-3 p-4 rounded-2xl" style={{ background: 'rgba(109,74,173,0.10)', border: '1px solid rgba(109,74,173,0.22)' }}>
+              <div className="flex items-start gap-3 p-4 rounded-lg" style={{ background: 'rgba(109,74,173,0.10)', border: '1px solid rgba(109,74,173,0.22)' }}>
                 <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" style={{ opacity: 0.9 }}/>
                 <div>
                   <h4 className="text-sm font-semibold text-red-400 mb-1" style={{ letterSpacing: '-0.01em' }}>Zona de Perigo</h4>
@@ -1691,11 +1691,11 @@ export default function App() {
                 </div>
               </div>
               <div className="flex flex-col gap-2.5">
-                <button onClick={handleLogout} className="w-full py-3 text-white text-[11px] font-semibold rounded-2xl transition-all hover:opacity-85 flex items-center justify-center gap-2" style={{ background: '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                <button onClick={handleLogout} className="w-full py-3 text-white text-[11px] font-semibold rounded-lg transition-all hover:opacity-85 flex items-center justify-center gap-2" style={{ background: '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                   <LogOut className="w-3.5 h-3.5" /> Sair da conta
                 </button>
-                <button onClick={handleResetData} className="w-full py-3 text-[11px] font-semibold rounded-2xl transition-all hover:opacity-85" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Apagar todos os dados</button>
-                <button onClick={() => setSettingsModal(false)} className="w-full py-3 text-gray-500 text-[11px] font-semibold rounded-2xl transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Cancelar</button>
+                <button onClick={handleResetData} className="w-full py-3 text-[11px] font-semibold rounded-lg transition-all hover:opacity-85" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Apagar todos os dados</button>
+                <button onClick={() => setSettingsModal(false)} className="w-full py-3 text-gray-500 text-[11px] font-semibold rounded-lg transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Cancelar</button>
               </div>
             </div>
           </BottomSheet>
@@ -1710,8 +1710,8 @@ export default function App() {
                 <p className="text-xs text-gray-500 leading-relaxed">Deseja registar esse valor como entrada nas transações recentes?</p>
               </div>
               <div className="flex flex-col gap-2.5">
-                <button onClick={() => handleSalaryWithTransaction(salaryConfirmModal)} className="w-full py-3 text-white text-[11px] font-semibold rounded-2xl transition-all hover:opacity-85" style={{ background: '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Sim, adicionar</button>
-                <button onClick={() => handleSalaryOnly(salaryConfirmModal)} className="w-full py-3 text-gray-500 text-[11px] font-semibold rounded-2xl transition-colors" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Não</button>
+                <button onClick={() => handleSalaryWithTransaction(salaryConfirmModal)} className="w-full py-3 text-white text-[11px] font-semibold rounded-lg transition-all hover:opacity-85" style={{ background: '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Sim, adicionar</button>
+                <button onClick={() => handleSalaryOnly(salaryConfirmModal)} className="w-full py-3 text-gray-500 text-[11px] font-semibold rounded-lg transition-colors" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Não</button>
               </div>
             </div>
           </BottomSheet>
@@ -1729,16 +1729,16 @@ export default function App() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="tv-label block ml-1">Valor (R$)</label>
-                  <input type="number" value={newTx.amount || ''} onChange={e => setNewTx({...newTx, amount: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
+                  <input type="number" value={newTx.amount || ''} onChange={e => setNewTx({...newTx, amount: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
                 </div>
                 <div className="space-y-2">
                   <label className="tv-label block ml-1">Descrição</label>
-                  <input type="text" value={newTx.desc || ''} onChange={e => setNewTx({...newTx, desc: e.target.value})} placeholder="Ex: Salário, Lanche..." className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none transition-all text-gray-800 text-sm" />
+                  <input type="text" value={newTx.desc || ''} onChange={e => setNewTx({...newTx, desc: e.target.value})} placeholder="Ex: Salário, Lanche..." className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none transition-all text-gray-800 text-sm" />
                 </div>
               </div>
               <div className="flex gap-2.5">
-                <button onClick={() => setTxModal(null)} className="flex-1 py-3 text-gray-500 text-[11px] font-semibold rounded-2xl transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Cancelar</button>
-                <button onClick={handleAddTx} className="flex-1 py-3 text-white text-[11px] font-semibold rounded-2xl transition-all hover:opacity-85" style={{ background: txModal === 'in' ? 'rgba(255,255,255,0.16)' : '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Salvar</button>
+                <button onClick={() => setTxModal(null)} className="flex-1 py-3 text-gray-500 text-[11px] font-semibold rounded-lg transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Cancelar</button>
+                <button onClick={handleAddTx} className="flex-1 py-3 text-white text-[11px] font-semibold rounded-lg transition-all hover:opacity-85" style={{ background: txModal === 'in' ? 'rgba(255,255,255,0.16)' : '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Salvar</button>
               </div>
             </div>
           </BottomSheet>
@@ -1754,22 +1754,22 @@ export default function App() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="tv-label block ml-1">Nome da Conta</label>
-                  <input type="text" value={newFixedCost.name || ''} onChange={e => setNewFixedCost({...newFixedCost, name: e.target.value})} placeholder="Ex: Academia" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none transition-all text-gray-800 text-sm" />
+                  <input type="text" value={newFixedCost.name || ''} onChange={e => setNewFixedCost({...newFixedCost, name: e.target.value})} placeholder="Ex: Academia" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none transition-all text-gray-800 text-sm" />
                 </div>
                 <div className="flex gap-3">
                   <div className="space-y-2 flex-1">
                     <label className="tv-label block ml-1">Valor</label>
-                    <input type="number" value={newFixedCost.amount || ''} onChange={e => setNewFixedCost({...newFixedCost, amount: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
+                    <input type="number" value={newFixedCost.amount || ''} onChange={e => setNewFixedCost({...newFixedCost, amount: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
                   </div>
                   <div className="space-y-2 w-1/3">
                     <label className="tv-label block ml-1">Dia</label>
-                    <input type="text" value={newFixedCost.due || ''} onChange={e => setNewFixedCost({...newFixedCost, due: e.target.value})} placeholder="15" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none transition-all text-gray-800 text-center text-sm" />
+                    <input type="text" value={newFixedCost.due || ''} onChange={e => setNewFixedCost({...newFixedCost, due: e.target.value})} placeholder="15" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none transition-all text-gray-800 text-center text-sm" />
                   </div>
                 </div>
               </div>
               <div className="flex gap-2.5">
-                <button onClick={() => setFixedCostModal(false)} className="flex-1 py-3 text-gray-500 text-[11px] font-semibold rounded-2xl transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Cancelar</button>
-                <button onClick={handleAddFixedCost} className="flex-1 py-3 text-white text-[11px] font-semibold rounded-2xl transition-all hover:opacity-85" style={{ background: '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Adicionar</button>
+                <button onClick={() => setFixedCostModal(false)} className="flex-1 py-3 text-gray-500 text-[11px] font-semibold rounded-lg transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Cancelar</button>
+                <button onClick={handleAddFixedCost} className="flex-1 py-3 text-white text-[11px] font-semibold rounded-lg transition-all hover:opacity-85" style={{ background: '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Adicionar</button>
               </div>
             </div>
           </BottomSheet>
@@ -1785,16 +1785,16 @@ export default function App() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="tv-label block ml-1">Valor Guardado (R$)</label>
-                  <input type="number" value={newEmergency.current || ''} onChange={e => setNewEmergency({...newEmergency, current: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
+                  <input type="number" value={newEmergency.current || ''} onChange={e => setNewEmergency({...newEmergency, current: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
                 </div>
                 <div className="space-y-2">
                   <label className="tv-label block ml-1">Objetivo (R$)</label>
-                  <input type="number" value={newEmergency.target || ''} onChange={e => setNewEmergency({...newEmergency, target: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
+                  <input type="number" value={newEmergency.target || ''} onChange={e => setNewEmergency({...newEmergency, target: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
                 </div>
               </div>
               <div className="flex gap-2.5">
-                <button onClick={() => setEmergencyModal(false)} className="flex-1 py-3 text-gray-500 text-[11px] font-semibold rounded-2xl transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Cancelar</button>
-                <button onClick={handleSaveEmergency} className="flex-1 py-3 text-white text-[11px] font-semibold rounded-2xl transition-all hover:opacity-85" style={{ background: '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Salvar</button>
+                <button onClick={() => setEmergencyModal(false)} className="flex-1 py-3 text-gray-500 text-[11px] font-semibold rounded-lg transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Cancelar</button>
+                <button onClick={handleSaveEmergency} className="flex-1 py-3 text-white text-[11px] font-semibold rounded-lg transition-all hover:opacity-85" style={{ background: '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Salvar</button>
               </div>
             </div>
           </BottomSheet>
@@ -1810,7 +1810,7 @@ export default function App() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="tv-label block ml-1">Tipo</label>
-                  <select value={newExtInv.type} onChange={e => setNewExtInv({...newExtInv, type: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none transition-all text-gray-800 appearance-none text-sm">
+                  <select value={newExtInv.type} onChange={e => setNewExtInv({...newExtInv, type: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none transition-all text-gray-800 appearance-none text-sm">
                     <option>Dólar (USD)</option>
                     <option>Euro (EUR)</option>
                     <option>Outros</option>
@@ -1818,22 +1818,22 @@ export default function App() {
                 </div>
                 <div className="space-y-2">
                   <label className="tv-label block ml-1">Descrição (Opcional)</label>
-                  <input type="text" value={newExtInv.name || ''} onChange={e => setNewExtInv({...newExtInv, name: e.target.value})} placeholder="Ex: Conta Nomad" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none transition-all text-gray-800 text-sm" />
+                  <input type="text" value={newExtInv.name || ''} onChange={e => setNewExtInv({...newExtInv, name: e.target.value})} placeholder="Ex: Conta Nomad" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none transition-all text-gray-800 text-sm" />
                 </div>
                 <div className="flex gap-3">
                   <div className="space-y-2 flex-1">
                     <label className="tv-label block ml-1">Valor na Moeda</label>
-                    <input type="number" value={newExtInv.amount || ''} onChange={e => setNewExtInv({...newExtInv, amount: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
+                    <input type="number" value={newExtInv.amount || ''} onChange={e => setNewExtInv({...newExtInv, amount: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
                   </div>
                   <div className="space-y-2 w-1/3">
                     <label className="tv-label block ml-1">Cotação R$</label>
-                    <input type="number" value={newExtInv.rate || ''} onChange={e => setNewExtInv({...newExtInv, rate: e.target.value})} placeholder="1.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none transition-all text-gray-800 text-center text-sm tv-num" />
+                    <input type="number" value={newExtInv.rate || ''} onChange={e => setNewExtInv({...newExtInv, rate: e.target.value})} placeholder="1.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none transition-all text-gray-800 text-center text-sm tv-num" />
                   </div>
                 </div>
               </div>
               <div className="flex gap-2.5">
-                <button onClick={() => setExtInvModal(false)} className="flex-1 py-3 text-gray-500 text-[11px] font-semibold rounded-2xl transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Cancelar</button>
-                <button onClick={handleAddExtInvestment} className="flex-1 py-3 text-white text-[11px] font-semibold rounded-2xl transition-all hover:opacity-85" style={{ background: '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Adicionar</button>
+                <button onClick={() => setExtInvModal(false)} className="flex-1 py-3 text-gray-500 text-[11px] font-semibold rounded-lg transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Cancelar</button>
+                <button onClick={handleAddExtInvestment} className="flex-1 py-3 text-white text-[11px] font-semibold rounded-lg transition-all hover:opacity-85" style={{ background: '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Adicionar</button>
               </div>
             </div>
           </BottomSheet>
@@ -1849,20 +1849,20 @@ export default function App() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="tv-label block ml-1">Nome da Meta</label>
-                  <input type="text" value={newGoal.name || ''} onChange={e => setNewGoal({...newGoal, name: e.target.value})} placeholder="Ex: Comprar Carro" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none transition-all text-gray-800 text-sm" />
+                  <input type="text" value={newGoal.name || ''} onChange={e => setNewGoal({...newGoal, name: e.target.value})} placeholder="Ex: Comprar Carro" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none transition-all text-gray-800 text-sm" />
                 </div>
                 <div className="space-y-2">
                   <label className="tv-label block ml-1">Valor Alvo (R$)</label>
-                  <input type="number" value={newGoal.target || ''} onChange={e => setNewGoal({...newGoal, target: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
+                  <input type="number" value={newGoal.target || ''} onChange={e => setNewGoal({...newGoal, target: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
                 </div>
                 <div className="space-y-2">
                   <label className="tv-label block ml-1">Já Guardado (Opcional)</label>
-                  <input type="number" value={newGoal.current || ''} onChange={e => setNewGoal({...newGoal, current: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
+                  <input type="number" value={newGoal.current || ''} onChange={e => setNewGoal({...newGoal, current: e.target.value})} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
                 </div>
               </div>
               <div className="flex gap-2.5">
-                <button onClick={() => setGoalModal(false)} className="flex-1 py-3 text-gray-500 text-[11px] font-semibold rounded-2xl transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Cancelar</button>
-                <button onClick={handleAddGoal} className="flex-1 py-3 text-white text-[11px] font-semibold rounded-2xl transition-all hover:opacity-85" style={{ background: '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Criar Meta</button>
+                <button onClick={() => setGoalModal(false)} className="flex-1 py-3 text-gray-500 text-[11px] font-semibold rounded-lg transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Cancelar</button>
+                <button onClick={handleAddGoal} className="flex-1 py-3 text-white text-[11px] font-semibold rounded-lg transition-all hover:opacity-85" style={{ background: '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Criar Meta</button>
               </div>
             </div>
           </BottomSheet>
@@ -1876,18 +1876,18 @@ export default function App() {
                 <Plus className="w-4 h-4 text-emerald-500" style={{ opacity: 0.9 }}/> Adicionar Valor
               </h3>
               <div className="space-y-4">
-                <div className="p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}>
+                <div className="p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}>
                   <p className="tv-label mb-1.5">Meta: {addGoalValueModal.name}</p>
                   <p className="text-sm font-semibold text-gray-800 tv-num">Atual: R$ {(addGoalValueModal.current || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
                 </div>
                 <div className="space-y-2">
                   <label className="tv-label block ml-1">Valor a adicionar (R$)</label>
-                  <input type="number" value={addGoalAmount} onChange={e => setAddGoalAmount(e.target.value)} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
+                  <input type="number" value={addGoalAmount} onChange={e => setAddGoalAmount(e.target.value)} placeholder="0.00" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none transition-all text-gray-800 font-semibold text-sm tv-num" />
                 </div>
               </div>
               <div className="flex gap-2.5">
-                <button onClick={() => setAddGoalValueModal(null)} className="flex-1 py-3 text-gray-500 text-[11px] font-semibold rounded-2xl transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Cancelar</button>
-                <button onClick={handleAddValueToGoal} className="flex-1 py-3 text-white text-[11px] font-semibold rounded-2xl transition-all hover:opacity-85" style={{ background: '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Confirmar</button>
+                <button onClick={() => setAddGoalValueModal(null)} className="flex-1 py-3 text-gray-500 text-[11px] font-semibold rounded-lg transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Cancelar</button>
+                <button onClick={handleAddValueToGoal} className="flex-1 py-3 text-white text-[11px] font-semibold rounded-lg transition-all hover:opacity-85" style={{ background: '#6d4aad', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Confirmar</button>
               </div>
             </div>
           </BottomSheet>
@@ -1896,7 +1896,7 @@ export default function App() {
         {/* TOAST Notification */}
         {toast && (
           <div className="fixed bottom-20 md:bottom-10 right-4 md:right-8 z-50 animate-fade-in">
-            <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl" style={{ background: 'rgba(16,16,16,0.96)', border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0 8px 40px rgba(0,0,0,0.60)' }}>
+            <div className="flex items-center gap-3 px-5 py-3.5 rounded-lg" style={{ background: 'rgba(16,16,16,0.96)', border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0 8px 40px rgba(0,0,0,0.60)' }}>
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" style={{ opacity: 0.9 }} />
               <span className="text-[11px] font-semibold text-white" style={{ letterSpacing: '0.06em', textTransform: 'uppercase' }}>{toast}</span>
             </div>

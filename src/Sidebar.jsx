@@ -51,7 +51,7 @@ const inputStyle = {
   padding: '12px 14px',
   background: 'rgba(255,255,255,0.05)',
   border: '1px solid rgba(255,255,255,0.09)',
-  borderRadius: '12px',
+  borderRadius: '8px',
   color: '#fff',
   fontSize: '14px',
   fontFamily: "'Manrope', sans-serif",
@@ -196,7 +196,7 @@ function AccountModal({ onBack, user, onLogout }) {
       <div style={{
         background: 'rgba(255,255,255,0.03)',
         border: '1px solid rgba(255,255,255,0.06)',
-        borderRadius: '12px', overflow: 'hidden', marginBottom: '24px',
+        borderRadius: '8px', overflow: 'hidden', marginBottom: '24px',
       }}>
         {infoRows.map((row, i) => (
           <div key={i} style={{
@@ -259,7 +259,7 @@ function AccountModal({ onBack, user, onLogout }) {
           style={{
             marginTop: '4px', padding: '13px',
             background: pwLoading ? 'rgba(109,74,173,0.5)' : '#6d4aad',
-            color: '#fff', border: 'none', borderRadius: '12px',
+            color: '#fff', border: 'none', borderRadius: '8px',
             fontSize: '12px', fontWeight: 600,
             letterSpacing: '0.08em', textTransform: 'uppercase',
             cursor: pwLoading ? 'not-allowed' : 'pointer',
@@ -282,7 +282,7 @@ function AccountModal({ onBack, user, onLogout }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             background: 'rgba(239,68,68,0.07)',
             border: '1px solid rgba(239,68,68,0.18)',
-            borderRadius: '12px',
+            borderRadius: '8px',
             color: '#ef4444', cursor: 'pointer',
             fontSize: '13px', fontWeight: 600, letterSpacing: '0.04em',
             fontFamily: "'Manrope', sans-serif",
@@ -304,11 +304,11 @@ function PhoneModal({ onBack }) {
       <div style={{
         background: 'rgba(255,255,255,0.03)',
         border: '1px solid rgba(255,255,255,0.06)',
-        borderRadius: '12px', padding: '20px', marginBottom: '16px',
+        borderRadius: '8px', padding: '20px', marginBottom: '16px',
         display: 'flex', alignItems: 'center', gap: '16px',
       }}>
         <div style={{
-          width: '42px', height: '42px', borderRadius: '12px', flexShrink: 0,
+          width: '42px', height: '42px', borderRadius: '8px', flexShrink: 0,
           background: 'rgba(109,74,173,0.14)', border: '1px solid rgba(109,74,173,0.22)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
@@ -379,7 +379,7 @@ function SupportModal({ onBack }) {
       <div style={{
         background: 'rgba(255,255,255,0.03)',
         border: '1px solid rgba(255,255,255,0.06)',
-        borderRadius: '12px', padding: '18px 20px', marginBottom: '12px',
+        borderRadius: '8px', padding: '18px 20px', marginBottom: '12px',
       }}>
         <p style={{ fontSize: '10px', fontWeight: 600, color: '#374151', letterSpacing: '0.10em', textTransform: 'uppercase', margin: '0 0 8px', fontFamily: "'Outfit', sans-serif" }}>
           Email
@@ -395,7 +395,7 @@ function SupportModal({ onBack }) {
       <div style={{
         background: 'rgba(255,255,255,0.03)',
         border: '1px solid rgba(255,255,255,0.06)',
-        borderRadius: '12px', overflow: 'hidden', marginBottom: '24px',
+        borderRadius: '8px', overflow: 'hidden', marginBottom: '24px',
       }}>
         {faqs.map((item, i) => (
           <div key={i} style={{
@@ -544,7 +544,7 @@ export default function Sidebar({ isOpen, onClose, onLogout, user }) {
                   src={panteraImg}
                   alt="TitoVest"
                   style={{
-                    width: '100%', borderRadius: '24px',
+                    width: '100%', borderRadius: '8px',
                     display: 'block', objectFit: 'cover', objectPosition: 'center',
                   }}
                 />
@@ -585,7 +585,7 @@ export default function Sidebar({ isOpen, onClose, onLogout, user }) {
                       padding: '10px',
                       background: 'rgba(255,255,255,0.025)',
                       border: '1px solid rgba(255,255,255,0.055)',
-                      borderRadius: '10px',
+                      borderRadius: '8px',
                       color: '#4B5563',
                       fontSize: '11px', fontWeight: 500, letterSpacing: '0.02em',
                       cursor: 'pointer', fontFamily: "'Manrope', sans-serif",
@@ -605,7 +605,7 @@ export default function Sidebar({ isOpen, onClose, onLogout, user }) {
                       padding: '10px',
                       background: 'rgba(255,255,255,0.025)',
                       border: '1px solid rgba(255,255,255,0.055)',
-                      borderRadius: '10px',
+                      borderRadius: '8px',
                       color: '#4B5563',
                       fontSize: '11px', fontWeight: 500, letterSpacing: '0.02em',
                       cursor: 'pointer', fontFamily: "'Manrope', sans-serif",
