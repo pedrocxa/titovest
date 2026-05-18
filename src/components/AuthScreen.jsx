@@ -4,7 +4,7 @@ import { LiquidMetalButton } from './LiquidMetalButton'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const inputStyle = {
-  padding: '14px 16px',
+  padding: '12px 14px',
   background: 'transparent',
   border: '1px solid rgba(255,255,255,0.08)',
   borderRadius: '8px',
@@ -83,18 +83,18 @@ export default function AuthScreen() {
     <div
       style={{
         background: '#000000',
-        minHeight: '100dvh',
-        width: '100vw',
-        maxWidth: '100%',
-        overflowX: 'hidden',
-        overflowY: 'auto',
+        height: '100dvh',
+        width: '100%',
+        overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'flex-start',
         fontFamily: "'Manrope', sans-serif",
-        padding: '4vh 24px env(safe-area-inset-bottom, 24px)',
+        padding: '2vh 24px env(safe-area-inset-bottom, 24px)',
         boxSizing: 'border-box',
+        position: 'fixed',
+        inset: 0,
       }}
     >
       <style>{`
@@ -104,8 +104,8 @@ export default function AuthScreen() {
         }
       `}</style>
       {/* Logo */}
-      <div style={{ marginBottom: '32px', textAlign: 'center', width: '100%', display: 'flex', justifyContent: 'center' }}>
-        <img src="/pantera negra auth.png" alt="TitoVest" style={{ height: '280px', width: 'auto', objectFit: 'contain' }} />
+      <div style={{ marginBottom: '24px', textAlign: 'center', width: '100%', display: 'flex', justifyContent: 'center' }}>
+        <img src="/pantera negra auth.png" alt="TitoVest" style={{ height: 'auto', maxHeight: '220px', width: 'auto', maxWidth: '100%', objectFit: 'contain' }} />
       </div>
 
       {/* Tabs */}
@@ -113,11 +113,11 @@ export default function AuthScreen() {
         style={{
           display: 'flex',
           gap: '12px',
-          marginBottom: '24px',
+          marginBottom: '20px',
           width: '100%',
-          maxWidth: '360px',
+          maxWidth: '320px',
           boxSizing: 'border-box',
-          height: '40px',
+          height: '36px',
         }}
       >
         {['login', 'signup'].map((m) => (
@@ -219,7 +219,7 @@ export default function AuthScreen() {
         )}
 
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
-          <div style={{ position: 'relative', height: '42px', minWidth: '140px', display: 'inline-flex' }}>
+          <div style={{ position: 'relative', height: '40px', minWidth: '120px', display: 'inline-flex' }}>
             <LiquidMetalButton
               label={loading ? 'Aguarde...' : mode === 'login' ? 'Entrar' : 'Criar conta'}
               type="submit"
