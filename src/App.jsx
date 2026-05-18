@@ -203,6 +203,7 @@ const customStyles = `
     color: #e2e2e2;
     margin: 0;
     overflow-x: hidden;
+    overscroll-behavior: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
