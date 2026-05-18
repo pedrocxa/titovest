@@ -84,12 +84,16 @@ export default function AuthScreen() {
       style={{
         background: '#000000',
         minHeight: '100dvh',
+        width: '100vw',
+        maxWidth: '100%',
+        overflowX: 'hidden',
+        overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'flex-start',
         fontFamily: "'Manrope', sans-serif",
-        padding: '8vh 24px 32px',
+        padding: '4vh 24px env(safe-area-inset-bottom, 24px)',
         boxSizing: 'border-box',
       }}
     >
@@ -100,7 +104,7 @@ export default function AuthScreen() {
         }
       `}</style>
       {/* Logo */}
-      <div style={{ marginBottom: '36px', textAlign: 'center', width: '100%', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ marginBottom: '32px', textAlign: 'center', width: '100%', display: 'flex', justifyContent: 'center' }}>
         <img src="/pantera negra auth.png" alt="TitoVest" style={{ height: '280px', width: 'auto', objectFit: 'contain' }} />
       </div>
 
@@ -109,11 +113,11 @@ export default function AuthScreen() {
         style={{
           display: 'flex',
           gap: '12px',
-          marginBottom: '28px',
+          marginBottom: '24px',
           width: '100%',
           maxWidth: '360px',
           boxSizing: 'border-box',
-          height: '44px',
+          height: '40px',
         }}
       >
         {['login', 'signup'].map((m) => (
@@ -215,7 +219,7 @@ export default function AuthScreen() {
         )}
 
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
-          <div style={{ position: 'relative', height: '48px', minWidth: '160px', display: 'inline-flex' }}>
+          <div style={{ position: 'relative', height: '42px', minWidth: '140px', display: 'inline-flex' }}>
             <LiquidMetalButton
               label={loading ? 'Aguarde...' : mode === 'login' ? 'Entrar' : 'Criar conta'}
               type="submit"
