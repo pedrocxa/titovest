@@ -83,19 +83,16 @@ export default function AuthScreen() {
     <div
       style={{
         background: '#000000',
-        height: '100dvh',
+        minHeight: '100dvh',
         width: '100%',
         overflowX: 'hidden',
-        overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'flex-start',
         fontFamily: "'Manrope', sans-serif",
-        padding: '2vh 24px env(safe-area-inset-bottom, 24px)',
+        padding: '2vh 24px 48px', // Increased bottom padding to guarantee clearance on iOS Safari
         boxSizing: 'border-box',
-        position: 'fixed',
-        inset: 0,
       }}
     >
       <style>{`
