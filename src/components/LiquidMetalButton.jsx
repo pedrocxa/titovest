@@ -97,7 +97,7 @@ export function LiquidMetalButton({ label, onClick, disabled, isActive = true, t
   return (
     <div style={{ position: "relative", width: "100%", height: "100%", ...style }}>
       {/* Hidden span to give the container natural width based on content */}
-      <span style={{ opacity: 0, padding: '0 40px', fontSize: '13px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Manrope', sans-serif", display: 'inline-flex', visibility: 'hidden', whiteSpace: 'nowrap', height: '100%', alignItems: 'center' }}>
+      <span style={{ opacity: 0, padding: '0 16px', fontSize: '13px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Manrope', sans-serif", display: 'inline-flex', visibility: 'hidden', whiteSpace: 'nowrap', height: '100%', alignItems: 'center' }}>
         {label}
       </span>
       <div style={{ position: "absolute", inset: 0, perspective: "1000px", perspectiveOrigin: "50% 50%" }}>
