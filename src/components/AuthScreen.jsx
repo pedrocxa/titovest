@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { LiquidMetalButton } from './LiquidMetalButton'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const inputStyle = {
-  padding: '14px 16px',
-  background: 'rgba(255,255,255,0.06)',
-  border: '1px solid rgba(255,255,255,0.10)',
+  padding: '16px 18px',
+  background: 'transparent',
+  border: '1px solid rgba(255,255,255,0.08)',
   borderRadius: '8px',
   color: '#fff',
   fontSize: '14px',
@@ -12,7 +14,7 @@ const inputStyle = {
   outline: 'none',
   width: '100%',
   boxSizing: 'border-box',
-  transition: 'border-color 0.2s',
+  transition: 'border-color 0.2s, background 0.2s',
 }
 
 const ERROR_MAP = {
@@ -85,74 +87,44 @@ export default function AuthScreen() {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         fontFamily: "'Manrope', sans-serif",
-        padding: '32px 24px',
+        padding: '12vh 24px 32px',
         boxSizing: 'border-box',
       }}
     >
+      <style>{`
+        .auth-input:focus {
+          border-color: rgba(255,255,255,0.2) !important;
+          background: rgba(255,255,255,0.02) !important;
+        }
+      `}</style>
       {/* Logo */}
-      <div style={{ marginBottom: '52px', textAlign: 'center' }}>
-        <h1
-          style={{
-            fontFamily: "'Manrope', sans-serif",
-            fontWeight: 500,
-            fontSize: 'clamp(2rem, 8vw, 3rem)',
-            letterSpacing: '-0.03em',
-            lineHeight: 1,
-            margin: 0,
-          }}
-        >
-          <span style={{ color: '#fff' }}>Tito</span>
-          <span style={{ color: '#6d4aad' }}>Vest</span>
-        </h1>
-        <p
-          style={{
-            color: '#555',
-            fontSize: '13px',
-            margin: '10px 0 0',
-            letterSpacing: '0.04em',
-          }}
-        >
-          {mode === 'login' ? 'Bem-vindo de volta' : 'Crie sua conta gratuita'}
-        </p>
+      <div style={{ marginBottom: '48px', textAlign: 'center', width: '100%', display: 'flex', justifyContent: 'center' }}>
+        <img src="/pantera negra auth.png" alt="TitoVest" style={{ height: '320px', width: 'auto', objectFit: 'contain' }} />
       </div>
 
       {/* Tabs */}
       <div
         style={{
           display: 'flex',
-          background: 'rgba(255,255,255,0.05)',
-          borderRadius: '8px',
-          padding: '4px',
-          marginBottom: '28px',
+          gap: '12px',
+          marginBottom: '32px',
           width: '100%',
           maxWidth: '360px',
           boxSizing: 'border-box',
+          height: '48px',
         }}
       >
         {['login', 'signup'].map((m) => (
-          <button
-            key={m}
-            onClick={() => switchMode(m)}
-            style={{
-              flex: 1,
-              padding: '9px',
-              background: mode === m ? '#6d4aad' : 'transparent',
-              border: 'none',
-              borderRadius: '6px',
-              color: mode === m ? '#fff' : '#555',
-              fontSize: '12px',
-              fontFamily: "'Manrope', sans-serif",
-              fontWeight: 500,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-          >
-            {m === 'login' ? 'Entrar' : 'Cadastrar'}
-          </button>
+          <div key={m} style={{ flex: 1, position: 'relative', height: '100%' }}>
+            <LiquidMetalButton
+              label={m === 'login' ? 'Login' : 'Cadastro'}
+              onClick={() => switchMode(m)}
+              isActive={mode === m}
+              style={{ width: '100%', height: '100%' }}
+            />
+          </div>
         ))}
       </div>
 
@@ -164,40 +136,55 @@ export default function AuthScreen() {
           maxWidth: '360px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '12px',
           boxSizing: 'border-box',
         }}
       >
-        {mode === 'signup' && (
-          <input
-            type="text"
-            placeholder="Seu nome"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoComplete="name"
-            style={inputStyle}
-          />
-        )}
+        <div style={{ position: 'relative', width: '100%' }}>
+          <AnimatePresence mode="popLayout">
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, x: mode === 'login' ? -10 : 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: mode === 'login' ? 10 : -10 }}
+              transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}
+            >
+              {mode === 'signup' && (
+                <input
+                  type="text"
+                  placeholder="Seu nome"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoComplete="name"
+                  style={inputStyle}
+                  className="auth-input"
+                />
+              )}
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          autoComplete="email"
-          style={inputStyle}
-        />
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                style={inputStyle}
+                className="auth-input"
+              />
 
-        <input
-          type="password"
-          placeholder="Senha (mínimo 6 caracteres)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-          style={inputStyle}
-        />
+              <input
+                type="password"
+                placeholder={mode === 'login' ? "Senha" : "Crie sua senha"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                style={inputStyle}
+                className="auth-input"
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
         {error && (
           <p
@@ -227,32 +214,18 @@ export default function AuthScreen() {
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            marginTop: '8px',
-            padding: '15px',
-            background: loading ? '#4a3278' : '#6d4aad',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '13px',
-            fontFamily: "'Manrope', sans-serif",
-            fontWeight: 600,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            transition: 'background 0.2s',
-            opacity: loading ? 0.7 : 1,
-          }}
-        >
-          {loading
-            ? 'Aguarde...'
-            : mode === 'login'
-            ? 'Entrar'
-            : 'Criar conta'}
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
+          <div style={{ position: 'relative', height: '52px', minWidth: '180px', display: 'inline-flex' }}>
+            <LiquidMetalButton
+              label={loading ? 'Aguarde...' : mode === 'login' ? 'Entrar' : 'Criar conta'}
+              type="submit"
+              disabled={loading}
+              isActive={true}
+              onClick={handleSubmit}
+              style={{ width: '100%', height: '100%' }}
+            />
+          </div>
+        </div>
       </form>
     </div>
   )
